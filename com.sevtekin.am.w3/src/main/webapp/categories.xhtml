@@ -1,0 +1,159 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+
+<h:head>
+	<title>AM Categories</title>
+</h:head>
+
+<h:body>
+	<h:form id="frmSessionMonitor" prependId="false">
+		<f:event listener="#{categoryBean.initialize}" type="preRenderView" />
+	</h:form>
+	<h:form id="form">
+		<p:growl id="growl" showDetail="true" />
+		<p:menubar
+			style="border: 1px solid gray;background-size: 100%;background-color:#eeeeee;">
+			<p:menuitem value="Home" url="./home.jsf" icon="ui-icon-home" />
+			<p:submenu label="Cash Management" icon="ui-icon-contact"
+				style="background-size: 100%;background-color:#eeeeee;">
+				<p:menuitem value="Cash Entry" url="./cashEntry.jsf"
+					icon="ui-icon-calculator" />
+				<p:menuitem value="Cash Flow" url="./cashFlow.jsf"
+					icon="ui-icon-shuffle" />
+				<p:menuitem value="Estimates" url="./estimates.jsf"
+					icon="ui-icon-calculator" />
+				<p:menuitem value="Reports" icon="ui-icon-image" url="./reports.jsf" />
+				<p:menuitem value="Import" url="./import.jsf"
+					icon="ui-icon-arrowthickstop-1-s" />
+			</p:submenu>
+			<p:submenu label="Administration" icon="ui-icon-gear"
+				style="background-size: 100%;background-color:#eeeeee;">
+				<p:menuitem value="Categories" icon="ui-icon-note"
+					url="./categories.jsf"
+					style="background-size: 100%;background-color:#eeeeee;" />
+				<p:menuitem value="Owners" icon="ui-icon-person" url="./owners.jsf"
+					style="background-size: 100%;background-color:#eeeeee;" />
+				<p:menuitem value="Snapshots" icon="ui-icon-arrowthickstop-1-s" url="./snapshots.jsf"
+					style="background-size: 100%;background-color:#eeeeee;" />
+			</p:submenu>
+			<f:facet name="options">
+				<p:commandButton value="#{siteBean.user}" icon="ui-icon-power"
+						action="#{siteBean.logout}" />
+			</f:facet>
+		</p:menubar>
+		<br />
+		<br />
+		<table>
+			<tr valign="top">
+				<td><p:fieldset legend="Add Category">
+						<h:panelGrid id="categoryAddForm" columns="2" cellpadding="4"
+							style="margin:0 auto;">
+							<h:outputText value="Name:" style="font-weight:bold" />
+							<p:inputText id="inputCategoryName"
+								value="#{categoryBean.entry.name}" />
+							<h:outputText value="      " style="font-weight:bold" />
+							<p:commandButton id="addCButton" value="ADD" icon="ui-icon-disk"
+								action="#{categoryBean.addCategoryEntry}" type="submit"
+								process=":form:categoryAddForm"
+								update=":form:categoryEntries :form:growl">
+							</p:commandButton>
+						</h:panelGrid>
+					</p:fieldset><br /> <p:fieldset legend="Add Keyword">
+						<p:resizable />
+						<h:panelGrid id="add" columns="2" cellpadding="4"
+							style="margin:0 auto;">
+							<h:outputText value="Keyword:" style="font-weight:bold" />
+							<p:inputText id="inputKeyword"
+								value="#{categoryBean.keywordEntry.name}" />
+							<h:outputText value="Category: " style="font-weight:bold" />
+							<h:selectOneMenu value="#{categoryBean.entry.name}">
+								<f:selectItems value="#{categoryBean.categoryEntries}"
+									var="category" itemLabel="#{category.name}"
+									itemValue="#{category.name}" />
+							</h:selectOneMenu>
+							<h:outputText value="      " style="font-weight:bold" />
+							<p:commandButton id="addDButton" value="SAVE" icon="ui-icon-disk"
+								action="#{categoryBean.addKeywordEntry}" type="submit"
+								update=":form:categoryTable :form:growl" onlick="start()">
+							</p:commandButton>
+						</h:panelGrid>
+					</p:fieldset></td>
+				<td><p:fieldset id="categoryTable" legend="Categories">
+						<p:resizable />
+						<p:dataTable var="entry" value="#{categoryBean.categoryEntries}"
+							id="categoryEntries" editable="true" widgetVar="table"
+							rowIndexVar="rowIndex" columnIndexVar="columnIndex">
+							<p:ajax event="rowEdit"
+								listener="#{categoryBean.saveCategoryEntry}"
+								process=":form:categoryEntries"
+								update=":form:categoryEntries :form:growl" />
+							<p:column style="width:10px">
+								<f:facet name="header">Edit
+            			</f:facet>
+								<p:rowEditor />
+							</p:column>
+							<p:column style="width:10px">
+								<f:facet name="header">Delete
+            			</f:facet>
+								<p:commandButton id="deleteButton" icon="ui-icon-close"
+									action="#{categoryBean.deleteCategoryEntry}" type="submit"
+									process=":form:categoryEntries"
+									update=":form:categoryEntries :form:growl">
+									<f:setPropertyActionListener value="#{entry}"
+										target="#{categoryBean.entry}" />
+								</p:commandButton>
+							</p:column>
+							<p:column headerText="ID" style="width:10px" sortBy="#{entry.id}">
+								<h:outputText value="#{entry.id}" />
+							</p:column>
+							<p:column headerText="Name" style="width:100px"
+								sortBy="#{entry.name}">
+								<p:cellEditor>
+									<f:facet name="output">
+										<h:outputText value="#{entry.name}" />
+									</f:facet>
+									<f:facet name="input">
+										<p:inputText id="inputA" value="#{entry.name}"
+											style="width:96%" />
+									</f:facet>
+								</p:cellEditor>
+							</p:column>
+							<p:column headerText="Keywords" style="width:100px">
+								<p:dataTable var="keyword" value="#{entry.keywordEntry}"
+									id="keywordEntries" editable="true" widgetVar="table"
+									rowIndexVar="ri" columnIndexVar="ci">
+									<p:column style="width:10px">
+										<f:facet name="header">Delete
+            							</f:facet>
+										<p:commandButton id="delButton" icon="ui-icon-close"
+											action="#{categoryBean.deleteKeywordEntry}" type="submit"
+											process=":form:categoryEntries:keywordEntries"
+											update=":form:categoryEntries:keywordEntries :form:growl">
+											<f:setPropertyActionListener value="#{keyword}"
+												target="#{categoryBean.keywordEntry}" />
+										</p:commandButton>
+									</p:column>
+									<p:column headerText="Name" style="width:100px"
+										sortBy="#{keyword.name}">
+										<p:cellEditor>
+											<f:facet name="output">
+												<h:outputText value="#{keyword.name}" />
+											</f:facet>
+											<f:facet name="input">
+												<p:inputText id="inputV" value="#{keyword.name}"
+													style="width:96%" />
+											</f:facet>
+										</p:cellEditor>
+									</p:column>
+								</p:dataTable>
+							</p:column>
+						</p:dataTable>
+					</p:fieldset></td>
+			</tr>
+		</table>
+
+	</h:form>
+</h:body>
+</html>

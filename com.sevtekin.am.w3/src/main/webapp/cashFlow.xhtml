@@ -1,0 +1,60 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+
+<h:head>
+	<title>Asset Manager</title>
+</h:head>
+
+<h:body>
+	<h:form id="form">
+		<p:growl id="growl" showDetail="true" />
+		<p:menubar
+			style="border: 1px solid gray;background-size: 100%;background-color:#eeeeee;">
+			<p:menuitem value="Home" url="./home.jsf" icon="ui-icon-home" />
+			<p:submenu label="Cash Management" icon="ui-icon-contact"
+				style="background-size: 100%;background-color:#eeeeee;">
+				<p:menuitem value="Cash Entry" url="./cashEntry.jsf"
+					icon="ui-icon-calculator" />
+				<p:menuitem value="Cash Flow" url="./cashFlow.jsf"
+					icon="ui-icon-shuffle" />
+				<p:menuitem value="Estimates" url="./estimates.jsf"
+					icon="ui-icon-calculator" />
+				<p:menuitem value="Reports" icon="ui-icon-image" url="./reports.jsf" />
+				<p:menuitem value="Import" url="./import.jsf"
+					icon="ui-icon-arrowthickstop-1-s" />
+			</p:submenu>
+			<p:submenu label="Administration" icon="ui-icon-gear"
+				style="background-size: 100%;background-color:#eeeeee;">
+				<p:menuitem value="Categories" icon="ui-icon-note"
+					url="./categories.jsf"
+					style="background-size: 100%;background-color:#eeeeee;" />
+				<p:menuitem value="Owners" icon="ui-icon-person" url="./owners.jsf"
+					style="background-size: 100%;background-color:#eeeeee;" />
+				<p:menuitem value="Snapshots" icon="ui-icon-arrowthickstop-1-s" url="./snapshots.jsf"
+					style="background-size: 100%;background-color:#eeeeee;" />
+			</p:submenu>
+			<f:facet name="options">
+				<p:commandButton value="#{siteBean.user}" icon="ui-icon-power"
+						action="#{siteBean.logout}" />
+			</f:facet>
+		</p:menubar>
+		<br />
+		<p:dataTable var="category" value="#{cashFlowBean.categories}"
+			rowIndexVar="rowIndex" style="width:80%;height:50%">
+			<p:column headerText="Categories" footerText="Sub / Running Totals" style="background-size: 100%;background-color:#dddddf;text-align:left;width:130px">
+				<h:outputText value="#{category}" />
+			</p:column>
+			<p:columns var="date" value="#{cashFlowBean.dates}" headerText="#{date}" columnIndexVar="colIndex" style="background-size: 100%;background-color:#eeeeee;text-align:left;width:80px">
+				<div><h:outputText value="#{cashFlowBean.sums[rowIndex][colIndex]}" /></div>
+				<f:facet name="footer" style="background-size: 100%;background-color:#eeeeee;text-align:left">
+					<h:outputText style="font-weight:bold; color:green;" value="#{cashFlowBean.subTotals[colIndex]}" />
+										<br />
+					<h:outputText style="font-weight:bold; color:darkblue;" value="#{cashFlowBean.runningTotals[colIndex]}" />
+				</f:facet>
+			</p:columns>
+		</p:dataTable>
+	</h:form>
+</h:body>
+</html>

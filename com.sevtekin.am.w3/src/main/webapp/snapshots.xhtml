@@ -1,0 +1,87 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+
+<h:head>
+	<title>AM Snapshots</title>
+</h:head>
+
+<h:body>
+	<h:form id="frmSessionMonitor" prependId="false">
+		<f:event listener="#{snapshotBean.initialize}" type="preRenderView" />
+	</h:form>
+	
+	<h:form id="form">
+		<p:growl id="growl" showDetail="true" />
+		<p:menubar
+			style="border: 1px solid gray;background-size: 100%;background-color:#eeeeee;">
+			<p:menuitem value="Home" url="./home.jsf" icon="ui-icon-home" />
+			<p:submenu label="Cash Management" icon="ui-icon-contact"
+				style="background-size: 100%;background-color:#eeeeee;">
+				<p:menuitem value="Cash Entry" url="./cashEntry.jsf"
+					icon="ui-icon-calculator" />
+				<p:menuitem value="Cash Flow" url="./cashFlow.jsf"
+					icon="ui-icon-shuffle" />
+				<p:menuitem value="Estimates" url="./estimates.jsf"
+					icon="ui-icon-calculator" />
+				<p:menuitem value="Reports" icon="ui-icon-image" url="./reports.jsf" />
+				<p:menuitem value="Import" url="./import.jsf"
+					icon="ui-icon-arrowthickstop-1-s" />
+			</p:submenu>
+			<p:submenu label="Administration" icon="ui-icon-gear"
+				style="background-size: 100%;background-color:#eeeeee;">
+				<p:menuitem value="Categories" icon="ui-icon-note"
+					url="./categories.jsf"
+					style="background-size: 100%;background-color:#eeeeee;" />
+				<p:menuitem value="Owners" icon="ui-icon-person" url="./owners.jsf"
+					style="background-size: 100%;background-color:#eeeeee;" />
+				<p:menuitem value="Snapshots" icon="ui-icon-arrowthickstop-1-s"
+					url="./snapshots.jsf"
+					style="background-size: 100%;background-color:#eeeeee;" />
+			</p:submenu>
+			<f:facet name="options">
+				<p:commandButton value="#{siteBean.user}" icon="ui-icon-power"
+						action="#{siteBean.logout}" />
+			</f:facet>
+		</p:menubar>
+		<br />
+		<br />
+		<p:panel id="panel" header="Avaiable Snapshots">
+			<p:resizable />
+			<p:commandButton value="NEW SNAPSHOT"
+				actionListener="#{snapshotBean.takeSnapshot}" id="newSnap"
+				update="panel" ajax="false" />
+			<p:dataTable var="entry" value="#{snapshotBean.snapshotEntries}"
+				id="snapshotEntries" editable="true" widgetVar="table"
+				rowIndexVar="rowIndex" columnIndexVar="columnIndex">
+				<p:column style="width:20px">
+					<f:facet name="header">Delete
+            			</f:facet>
+					<p:commandButton id="deleteButton" icon="ui-icon-close"
+						action="#{snapshotBean.deleteSnapshot}" type="submit"
+						process=":form:snapshotEntries"
+						update=":form:snapshotEntries :form:growl">
+						<f:setPropertyActionListener value="#{entry}"
+							target="#{snapshotBean.snapshotEntry}" />
+					</p:commandButton>
+				</p:column>
+				<p:column style="width:20px">
+					<f:facet name="header">Restore
+            			</f:facet>
+					<p:commandButton id="restoreButton" icon="ui-icon-save"
+						action="#{snapshotBean.restoreSnapshot}" type="submit"
+						process=":form:snapshotEntries"
+						update=":form:snapshotEntries :form:growl">
+						<f:setPropertyActionListener value="#{entry}"
+							target="#{snapshotBean.snapshotEntry}" />
+					</p:commandButton>
+				</p:column>
+				<p:column headerText="Name" style="width:25%" sortBy="#{entry.name}">
+					<h:outputText value="#{entry.name}" />
+				</p:column>
+			</p:dataTable>
+		</p:panel>
+	</h:form>
+</h:body>
+</html>

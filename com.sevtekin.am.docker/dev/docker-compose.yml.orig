@@ -1,0 +1,22 @@
+w3:
+  container_name: w3dev
+  image: ci/w3dev
+  volumes:
+    - /etc/localtime:/etc/localtime:ro
+  ports:
+    - "6002:8443" 
+service:
+  container_name: servicedev
+  image: ci/servicedev
+  volumes:
+    - /etc/localtime:/etc/localtime:ro
+  ports:
+    - "6001:8443"
+db:
+  container_name: dbdev
+  image: ci/dbdev
+  volumes:
+    - /shared/am/dev/db:/var/lib/mysql 
+    - /etc/localtime:/etc/localtime:ro
+  ports:
+    - "6000:3306"

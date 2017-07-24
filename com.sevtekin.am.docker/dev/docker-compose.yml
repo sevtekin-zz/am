@@ -1,0 +1,24 @@
+version: '2'
+services: 
+ w3:
+   image: ci/w3dev
+   volumes:
+   - /etc/localtime:/etc/localtime:ro
+   ports:
+   - "6002:9443"
+
+ service:
+   image: ci/servicedev
+   volumes:
+   - /etc/localtime:/etc/localtime:ro
+   - ~/am/dev/snapshots:/snapshots
+   ports:
+   - "6001:9443"
+
+ db:
+   image: ci/dbdev
+   volumes:
+   - ~/am/dev/db:/var/lib/mysql 
+   - /etc/localtime:/etc/localtime:ro
+   ports:
+   - "6000:3306"

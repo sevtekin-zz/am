@@ -1,0 +1,275 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+
+<h:head>
+	<title>AM Cash Management</title>
+	<script type="text/javascript">
+		function start() {
+			pbClient.setValue(0);
+			window['progress'] = setInterval(
+					function() {
+						var pbClient = PF('pbClient'), oldValue = pbClient
+								.getValue(), newValue = oldValue + 20;
+
+						pbClient.setValue(pbClient.getValue() + 20);
+
+						if (newValue === 100) {
+							clearInterval(window['progress']);
+						}
+					}, 1);
+		}
+	</script>
+	<style>
+.ui-datatable-header {
+	background-size: 100%;
+	background-color: #eeeeee;
+}
+</style>
+
+</h:head>
+
+<h:body onload="start()">
+	<h:form id="frmSessionMonitor" prependId="false">
+		<f:event listener="#{clientBean.initialize}" type="preRenderView" />
+	</h:form>
+	<h:form id="form">
+		<p:menubar
+			style="border: 1px solid gray;background-size: 100%;background-color:#eeeeee;">
+			<p:menuitem value="Home" url="./home.jsf" icon="ui-icon-home" />
+			<p:submenu label="Cash Management" icon="ui-icon-contact"
+				style="background-size: 100%;background-color:#eeeeee;">
+				<p:menuitem value="Cash Entry" url="./cashEntry.jsf"
+					icon="ui-icon-calculator" />
+				<p:menuitem value="Cash Flow" url="./cashFlow.jsf"
+					icon="ui-icon-shuffle" />
+				<p:menuitem value="Estimates" url="./estimates.jsf"
+					icon="ui-icon-calculator" />
+				<p:menuitem value="Reports" icon="ui-icon-image" url="./reports.jsf" />
+				<p:menuitem value="Import" url="./import.jsf"
+					icon="ui-icon-arrowthickstop-1-s" />
+			</p:submenu>
+			<p:submenu label="Administration" icon="ui-icon-gear"
+				style="background-size: 100%;background-color:#eeeeee;">
+				<p:menuitem value="Categories" icon="ui-icon-note"
+					url="./categories.jsf"
+					style="background-size: 100%;background-color:#eeeeee;" />
+				<p:menuitem value="Owners" icon="ui-icon-person" url="./owners.jsf"
+					style="background-size: 100%;background-color:#eeeeee;" />
+				<p:menuitem value="Snapshots" icon="ui-icon-arrowthickstop-1-s"
+					url="./snapshots.jsf"
+					style="background-size: 100%;background-color:#eeeeee;" />
+			</p:submenu>
+			<f:facet name="options">
+				<p:commandButton value="#{siteBean.user}" icon="ui-icon-power"
+						action="#{siteBean.logout}" />
+			</f:facet>
+		</p:menubar>
+		<p:growl id="growl" showDetail="true" />
+		<br />
+		<br />
+		<table>
+			<tr valign="top">
+				<td><p:fieldset legend="Filters">
+						<h:panelGrid id="filters" columns="2" value="Refresh"
+							cellpadding="4" style="margin:0 auto;">
+							<h:outputText value="AMOUNT"
+								style="font-weight:bold; color:lightblue;" />
+							<h:outputText value="                           "
+								style="font-weight:bold; color:lightblue;" />
+							<h:outputText value="Equals To:" />
+							<p:inputText id="InputEqualsAmountText"
+								value="#{clientBean.equalsAmount}" />
+							<h:outputText value="Greater Than:" />
+							<p:inputText id="InputAmountGreaterText"
+								value="#{clientBean.greaterAmount}" />
+							<h:outputText value="Less Than:" />
+							<p:inputText id="InputAmountLesserText"
+								value="#{clientBean.lesserAmount}" />
+							<h:outputText value="DATE"
+								style="font-weight:bold; color:lightblue;" />
+							<h:outputText value="                           "
+								style="font-weight:bold; color:lightblue;" />
+							<h:outputText value="On:" />
+							<p:calendar id="actualDateEquals"
+								value="#{clientBean.equalsActualDate}" style="width:100%"
+								effect="slide" />
+							<h:outputText value="After:" />
+							<p:calendar id="actualDateAfter"
+								value="#{clientBean.afterActualDate}" style="width:100%"
+								effect="slide" />
+							<h:outputText value="Before:" />
+							<p:calendar id="actualDateBefore"
+								value="#{clientBean.beforeActualDate}" style="width:100%"
+								effect="slide" />
+							<h:outputText value="CATEGORY"
+								style="font-weight:bold; color:lightblue;" />
+							<h:outputText value="                           "
+								style="font-weight:bold; color:lightblue;" />
+							<h:outputText value="Category:" />
+							<h:selectOneMenu value="#{clientBean.categoryEntry.id}"
+								style="width:100%">
+								<f:selectItems value="#{clientBean.categoryFilters}"
+									var="category" itemLabel="#{category.name}"
+									itemValue="#{category.id}" />
+							</h:selectOneMenu>
+							<h:outputText value="OWNER"
+								style="font-weight:bold; color:lightblue;" />
+							<h:outputText value="                           "
+								style="font-weight:bold; color:lightblue;" />
+							<h:outputText value="Owner:" />
+							<h:selectOneMenu value="#{clientBean.ownerEntry.id}"
+								style="width:100%">
+								<f:selectItems value="#{clientBean.ownerFilters}" var="owner"
+									itemLabel="#{owner.name}" itemValue="#{owner.id}" />
+							</h:selectOneMenu>
+							<h:outputText value="Search: " />
+							<p:inputText id="InputDescription"
+								value="#{clientBean.description}" />
+							<p:commandButton id="applyFiltersButton" value="APPLY FILTERS"
+								action="#{clientBean.refreshFromDBWithFilters}" type="submit"
+								process=":form:filters" update=":form:cashFlow :form:growl"
+								onclick="start()">
+							</p:commandButton>
+							<p:commandButton id="resetFiltersButton" value="RESET FILTERS"
+								action="#{clientBean.resetFilters}" type="submit"
+								process=":form:filters"
+								update=":form:cashFlow :form:filters :form:growl"
+								onclick="start()">
+							</p:commandButton>
+						</h:panelGrid>
+						<p:resizable />
+					</p:fieldset> <br /> <br /> <p:fieldset legend="Add Cash">
+						<p:resizable />
+						<h:panelGrid id="add" columns="2" cellpadding="4"
+							style="margin:0 auto;">
+							<h:outputText value="Amount:" style="font-weight:bold" />
+							<p:inputText id="inputAmount"
+								value="#{clientBean.cashEntry.amount}" />
+							<h:outputText value="Date: " style="font-weight:bold" />
+							<p:calendar id="actDate"
+								value="#{clientBean.cashEntry.actualdate}" effect="slide" />
+							<h:outputText value="Category: " style="font-weight:bold" />
+							<h:selectOneMenu
+								value="#{clientBean.cashEntry.categoryEntry.name}">
+								<f:selectItems value="#{clientBean.categoryEntries}"
+									var="category" itemLabel="#{category.name}"
+									itemValue="#{category.name}" />
+							</h:selectOneMenu>
+							<h:outputText value="Owner: " style="font-weight:bold" />
+							<h:selectOneMenu value="#{clientBean.cashEntry.ownerEntry.name}">
+								<f:selectItems value="#{clientBean.ownerEntries}" var="owner"
+									itemLabel="#{owner.name}" itemValue="#{owner.name}" />
+							</h:selectOneMenu>
+							<h:outputText value="      " style="font-weight:bold" />
+							<p:commandButton id="addButton" value="SAVE" icon="ui-icon-disk"
+								action="#{clientBean.addCashEntry}" type="submit"
+								update=":form:cashFlow :form:growl :form:focus1"
+								onclick="start()">
+							</p:commandButton>
+						</h:panelGrid>
+					</p:fieldset></td>
+				<td><p:fieldset legend="Cash Table">
+						<p:resizable />
+						<p:dataTable var="entry" value="#{clientBean.cashEntries}"
+							id="cashFlow" editable="true" widgetVar="table"
+							rowIndexVar="rowIndex" columnIndexVar="columnIndex"
+							selection="#{clientBean.selectedCashEntries}"
+							rowKey="#{entry.id}">
+							<p:resizable />
+							<p:ajax event="rowEdit" listener="#{clientBean.saveCashEntry}"
+								update=":form:cashFlow :form:growl" />
+							<p:ajax event="sort" listener="#{clientBean.resetRunningTotal}"
+								update=":form:cashFlow" />
+							<p:column selectionMode="multiple"
+								style="width:3%;background-size: 100%;background-color:#eeeeee;" />
+							<p:column
+								style="width:4%;background-size: 100%;background-color:#eeeeee;">
+								<f:facet name="header">Edit
+            					</f:facet>
+								<p:rowEditor />
+							</p:column>
+							<p:column
+								style="width:6%;background-size: 100%;background-color:#eeeeee;">
+								<f:facet name="header">Delete
+            			</f:facet>
+								<p:commandButton id="deleteButton" icon="ui-icon-close"
+									action="#{clientBean.deleteCashEntry}" type="submit"
+									process=":form:cashFlow" update=":form:cashFlow :form:growl"
+									onclick="start()">
+									<f:setPropertyActionListener value="#{entry}"
+										target="#{clientBean.cashEntry}" />
+								</p:commandButton>
+							</p:column>
+							<p:column headerText="Date" sortBy="#{entry.actualdate}"
+								style="width:15%">
+								<p:cellEditor>
+									<f:facet name="output">
+										<h:outputText value="#{entry.actualdate}">
+											<f:convertDateTime pattern="MM/dd/yyyy" />
+										</h:outputText>
+									</f:facet>
+									<f:facet name="input">
+										<p:calendar value="#{entry.actualdate}" effect="slide" />
+									</f:facet>
+								</p:cellEditor>
+							</p:column>
+
+							<p:column headerText="Category"
+								sortBy="#{entry.categoryEntry.name}" style="width:20%">
+								<p:cellEditor>
+									<f:facet name="output">
+										<h:outputText value="#{entry.categoryEntry.name}" />
+									</f:facet>
+									<f:facet name="input">
+										<h:selectOneMenu value="#{entry.categoryEntry.name}">
+											<f:selectItems value="#{clientBean.categoryEntries}"
+												var="category" itemLabel="#{category.name}"
+												itemValue="#{category.name}" />
+										</h:selectOneMenu>
+									</f:facet>
+								</p:cellEditor>
+							</p:column>
+							<p:column headerText="Owner" sortBy="#{entry.ownerEntry.name}"
+								style="width:24%">
+								<p:cellEditor>
+									<f:facet name="output">
+										<h:outputText value="#{entry.ownerEntry.name}" />
+									</f:facet>
+									<f:facet name="input">
+										<h:selectOneMenu value="#{entry.ownerEntry.name}">
+											<f:selectItems value="#{clientBean.ownerEntries}" var="owner"
+												itemLabel="#{owner.name}" itemValue="#{owner.name}" />
+										</h:selectOneMenu>
+									</f:facet>
+								</p:cellEditor>
+							</p:column>
+							<p:column headerText="Amount" sortBy="#{entry.amount}"
+								style="width:13%">
+								<p:cellEditor>
+									<f:facet name="output">
+										<h:outputText value="#{entry.amount}">
+											<f:convertNumber currencySymbol="$" type="currency"
+												maxFractionDigits="2" />
+										</h:outputText>
+									</f:facet>
+									<f:facet name="input">
+										<p:inputText id="inputA" value="#{entry.amount}" />
+									</f:facet>
+								</p:cellEditor>
+							</p:column>
+							<p:column headerText="Running Total" style="width:13%">
+								<h:outputText id="rTotal"
+									value="#{clientBean.getRunningTotal(entry.amount)}">
+									<f:convertNumber currencySymbol="$" type="currency"
+										maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+						</p:dataTable>
+					</p:fieldset> <p:focus id="focus1" for="InputEqualsAmountText" /></td>
+			</tr>
+		</table>
+	</h:form>
+</h:body>
+</html>

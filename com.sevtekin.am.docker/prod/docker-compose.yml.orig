@@ -1,0 +1,22 @@
+w3:
+  container_name: w3
+  image: ci/w3
+  volumes:
+    - /etc/localtime:/etc/localtime:ro
+  ports:
+    - "5002:8443" 
+service:
+  container_name: service
+  image: ci/service
+  volumes:
+    - /etc/localtime:/etc/localtime:ro
+  ports:
+    - "5001:8443"
+db:
+  container_name: db
+  image: ci/db
+  volumes:
+    - /shared/am/prod/db:/var/lib/mysql 
+    - /etc/localtime:/etc/localtime:ro
+  ports:
+    - "5005:3306"
