@@ -80,7 +80,7 @@
 						</manifest>
 					</archive>
 					<workDirectory>../output/work</workDirectory>
-					<!--outputDirectory>/mnt/hgfs/AM/com.sevtekin.am.docker/bin/service</outputDirectory-->
+					<!--outputDirectory>/mnt/hgfs/AM/com.sevtekin.am.docker/bin/service</outputDirectory -->
 				</configuration>
 			</plugin>
 		</plugins>
@@ -107,8 +107,16 @@
 							<path>/am/service</path>
 						</configuration>
 					</plugin>
+					<plugin>
+						<groupId>com.google.appengine</groupId>
+						<artifactId>appengine-maven-plugin</artifactId>
+						<version>1.9.9</version>
+					</plugin>
+
 				</plugins>
 			</build>
+
+
 
 		</profile>
 
