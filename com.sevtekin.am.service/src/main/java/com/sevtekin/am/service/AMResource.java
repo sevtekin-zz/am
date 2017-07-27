@@ -515,11 +515,11 @@ public class AMResource {
 	public Response getOwnerEntries(@Context HttpServletRequest request) {
 		ConfigReader configReader = new ConfigReader();
 		String clientIp = request.getRemoteAddr();
-		if (!configReader.getAllowedConsumerList().contains(clientIp)) {
+		/*if (!configReader.getAllowedConsumerList().contains(clientIp)) {
 			System.out.println(new Timestamp(new Date().getTime())
 					+ "[AM SERVICE][WARNING] /OWNERENTRIES RESOURCE ACCESS DENIED TO " + clientIp);
 			return Response.status(Status.FORBIDDEN).build();
-		}
+		}*/
 		System.out.println(new Timestamp(new Date().getTime())
 				+ "[AM SERVICE][INFO] /OWNERENTRIES RESOURCE ACCESS GRANTED TO " + clientIp);
 		OwnerEntries entries = new OwnerEntries();
@@ -611,23 +611,28 @@ public class AMResource {
 	@Path("encryptpropfile")
 	@Produces("text/html")
 	public Response encryptFile(@Context HttpServletRequest request) {
+		System.out.println("STARTING SOMETHING");
 		ConfigReader configReader = new ConfigReader();
-		String clientIp = request.getRemoteAddr();
-		if (!configReader.getAllowedConsumerList().contains(clientIp)) {
-			System.out.println(new Timestamp(new Date().getTime())
-					+ "[AM SERVICE][WARNING] /ENCRYPTPROPFILE RESOURCE ACCESS DENIED TO " + clientIp);
-			return Response.status(Status.FORBIDDEN).build();
-		}
-		System.out.println(new Timestamp(new Date().getTime())
-				+ "[AM SERVICE][INFO] /ENCRYPTPROPFILE RESOURCE ACCESS GRANTED TO " + clientIp);
+		// String clientIp = request.getRemoteAddr();
+		// System.out.println("FROM IP:" + clientIp);
+		// if (!configReader.getAllowedConsumerList().contains(clientIp)) {
+		// System.out.println(new Timestamp(new Date().getTime())
+		// + "[AM SERVICE][WARNING] /ENCRYPTPROPFILE RESOURCE ACCESS DENIED TO " +
+		// clientIp);
+		// return Response.status(Status.FORBIDDEN).build();
+		// }
+		// System.out.println(new Timestamp(new Date().getTime())
+		// + "[AM SERVICE][INFO] /ENCRYPTPROPFILE RESOURCE ACCESS GRANTED TO " +
+		// clientIp);
+		String ret = "PROPERTIES FILE SUCCESSFULLY ENCRYPTED";
 		try {
 			new EncryptionHandler().encryptPropFile();
 		} catch (Exception e) {
+			ret = e.getMessage();
 			System.out.println(new Timestamp(new Date().getTime())
 					+ " [AM SERVICE][ERROR] Problem occured encrypting the properties file");
 			e.printStackTrace();
 		}
-		String ret = "PROPERTIES FILE SUCCESSFULLY ENCRYPTED";
 		return Response.ok(ret, MediaType.TEXT_HTML).build();
 	}
 
@@ -637,11 +642,12 @@ public class AMResource {
 	public Response decryptFile(@Context HttpServletRequest request) {
 		ConfigReader configReader = new ConfigReader();
 		String clientIp = request.getRemoteAddr();
-		if (!configReader.getAllowedConsumerList().contains(clientIp)) {
-			System.out.println(new Timestamp(new Date().getTime())
-					+ "[AM SERVICE][WARNING] /DECRYPTPROPFILE RESOURCE ACCESS DENIED TO " + clientIp);
-			return Response.status(Status.FORBIDDEN).build();
-		}
+		/*
+		 * if (!configReader.getAllowedConsumerList().contains(clientIp)) {
+		 * System.out.println(new Timestamp(new Date().getTime()) +
+		 * "[AM SERVICE][WARNING] /DECRYPTPROPFILE RESOURCE ACCESS DENIED TO " +
+		 * clientIp); return Response.status(Status.FORBIDDEN).build(); }
+		 */
 		System.out.println(new Timestamp(new Date().getTime())
 				+ "[AM SERVICE][INFO] /DECRYPTPROPFILE RESOURCE ACCESS GRANTED TO " + clientIp);
 		try {
@@ -651,7 +657,7 @@ public class AMResource {
 					+ " [AM SERVICE][ERROR] Problem occured decrypting the properties file");
 			e.printStackTrace();
 		}
-		String ret = "PROPERTIES FILE SUCCESSFULLY ENCRYPTED";
+		String ret = "PROPERTIES FILE SUCCESSFULLY DECRYPTED";
 		return Response.ok(ret, MediaType.TEXT_HTML).build();
 	}
 
@@ -771,11 +777,11 @@ public class AMResource {
 				Date today = new Date();
 				System.out.println(sdf.format(today));
 				for (File listFile : listOfFiles) {
-					String tmp = listFile.getName().substring(0, listFile.getName().length()-6);
-			        Date fileDate = sdf.parse(tmp);
-			        long diff = (today.getTime()-fileDate.getTime()) / (1000 * 60 * 60 * 24);
+					String tmp = listFile.getName().substring(0, listFile.getName().length() - 6);
+					Date fileDate = sdf.parse(tmp);
+					long diff = (today.getTime() - fileDate.getTime()) / (1000 * 60 * 60 * 24);
 					System.out.println(listFile + " is " + diff + " days old");
-					if (diff>=90) {
+					if (diff >= 90) {
 						if (listFile.isFile()) {
 							listFile.delete();
 							System.out.println("File needs to be deleted " + listFile);
@@ -838,11 +844,30 @@ public class AMResource {
 		String jsonStr = "{\"balance\": 1000.21, \"name\":\"foo\"}";
 		return Response.ok(jsonStr, MediaType.APPLICATION_JSON).build();
 	}
+	
+	@GET
+	@Path("v2/t")
+	@Produces("application/json")
+	public Response t1() {
+		System.out.println(new Timestamp(new Date().getTime()) + "[AM SERVICE][INFO] jsontest requested");
+		String jsonStr = "{\"balance\": 1000.21, \"name\":\"foo\"}";
+		return Response.ok(jsonStr, MediaType.APPLICATION_JSON).build();
+	}
 
 	@GET
 	@Path("v2/jsonarraytest")
 	@Produces("application/json")
 	public Response jsonArrayTest(@Context HttpServletRequest request) {
+		System.out.println(new Timestamp(new Date().getTime()) + "[AM SERVICE][INFO] jsonarraytest requested");
+		String jsonStr = "\"employees\":[{\"firstName\":\"John\", \"lastName\":\"Doe\"},"
+				+ "{\"firstName\":\"Anna\", \"lastName\":\"Smith\"}]";
+		return Response.ok(jsonStr, MediaType.APPLICATION_JSON).build();
+	}
+	
+	@GET
+	@Path("v2/jsonarraytest2")
+	@Produces("application/json")
+	public Response jsonArrayTest2(@Context HttpServletRequest request) {
 		System.out.println(new Timestamp(new Date().getTime()) + "[AM SERVICE][INFO] jsonarraytest requested");
 		String jsonStr = "\"employees\":[{\"firstName\":\"John\", \"lastName\":\"Doe\"},"
 				+ "{\"firstName\":\"Anna\", \"lastName\":\"Smith\"}]";
@@ -1022,7 +1047,7 @@ public class AMResource {
 		// ANNUAL VELOCITY
 		object = new JSONObject();
 		object.put("name", "ANNUAL VELOCITY");
-		object.put("value", helper.annualVelocity());
+		//object.put("value", helper.annualVelocity());
 		objects.put(object);
 
 		// YTD SUMS
@@ -1094,6 +1119,25 @@ public class AMResource {
 
 		// ADD RESULTS
 		result.put("entries", objects);
+
+		return Response.ok(result.toString(), MediaType.APPLICATION_JSON).build();
+	}
+
+	@GET
+	@Path("v2/encryptpropfile")
+	@Produces("application/json")
+	public Response encryptFile() {
+		JSONObject result = new JSONObject();
+		JSONArray objects = new JSONArray();
+		try {
+			new EncryptionHandler().encryptPropFile();
+			JSONObject object = new JSONObject();
+			object.put("msg", "YAY");
+			objects.put(object);
+			result.put("msgs", objects);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
 		return Response.ok(result.toString(), MediaType.APPLICATION_JSON).build();
 	}
