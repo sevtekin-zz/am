@@ -1,7 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <appengine-web-app xmlns="http://appengine.google.com/ns/1.0">
-  <application>am-service</application><!-- unused for Cloud SDK based tooling -->
-  <version>ga-001</version><!-- unused for Cloud SDK based tooling -->
-  <threadsafe>true</threadsafe>
-  <runtime>java8</runtime>
+	<application>sefa-am-project</application><!-- unused for Cloud SDK based 
+		tooling -->
+	<version>ga-002</version><!-- unused for Cloud SDK based tooling -->
+	<threadsafe>true</threadsafe>
+	<runtime>java8</runtime>
+	<env-variables>
+		<env-var name="DBUSER" value="amdbuser" />
+		<env-var name="DBPASSWORD" value="amdb" />
+		<env-var name="DBURL" value="jdbc:mysql://35.188.74.130:3306/amdb" />
+		<env-var name="DBDUMPLOCATION" value="~/." />
+		<env-var name="DBUSER" value="amdbuser" />
+	</env-variables>
 </appengine-web-app>

@@ -57,11 +57,12 @@ public class AMResource {
 	public Response getCashEntries(@Context HttpServletRequest request) {
 		ConfigReader configReader = new ConfigReader();
 		String clientIp = request.getRemoteAddr();
-		if (!configReader.getAllowedConsumerList().contains(clientIp)) {
-			System.out.println(new Timestamp(new Date().getTime())
-					+ "[AM SERVICE][WARNING] /CASHENTRIES RESOURCE ACCESS DENIED TO " + clientIp);
-			return Response.status(Status.FORBIDDEN).build();
-		}
+		/*
+		 * if (!configReader.getAllowedConsumerList().contains(clientIp)) {
+		 * System.out.println(new Timestamp(new Date().getTime()) +
+		 * "[AM SERVICE][WARNING] /CASHENTRIES RESOURCE ACCESS DENIED TO " + clientIp);
+		 * return Response.status(Status.FORBIDDEN).build(); }
+		 */
 		System.out.println(new Timestamp(new Date().getTime())
 				+ "[AM SERVICE][INFO] /CASHENTRIES RESOURCE ACCESS GRANTED TO " + clientIp);
 		CashEntries entries = new CashEntries();
@@ -74,11 +75,12 @@ public class AMResource {
 	public Response getEstimateEntries(@Context HttpServletRequest request) {
 		ConfigReader configReader = new ConfigReader();
 		String clientIp = request.getRemoteAddr();
-		if (!configReader.getAllowedConsumerList().contains(clientIp)) {
-			System.out.println(new Timestamp(new Date().getTime())
-					+ "[AM SERVICE][WARNING] /ESTIMATEENTRIES RESOURCE ACCESS DENIED TO " + clientIp);
-			return Response.status(Status.FORBIDDEN).build();
-		}
+		/*
+		 * if (!configReader.getAllowedConsumerList().contains(clientIp)) {
+		 * System.out.println(new Timestamp(new Date().getTime()) +
+		 * "[AM SERVICE][WARNING] /ESTIMATEENTRIES RESOURCE ACCESS DENIED TO " +
+		 * clientIp); return Response.status(Status.FORBIDDEN).build(); }
+		 */
 		System.out.println(new Timestamp(new Date().getTime())
 				+ "[AM SERVICE][INFO] /ESTIMATEENTRIES RESOURCE ACCESS GRANTED TO " + clientIp);
 		CashEntries entries = new CashEntries();
@@ -91,11 +93,12 @@ public class AMResource {
 	public Response getCashEntries(@PathParam("filters") String filters, @Context HttpServletRequest request) {
 		ConfigReader configReader = new ConfigReader();
 		String clientIp = request.getRemoteAddr();
-		if (!configReader.getAllowedConsumerList().contains(clientIp)) {
-			System.out.println(new Timestamp(new Date().getTime())
-					+ "[AM SERVICE][WARNING] /CASHENTRIES{FILTERS} RESOURCE ACCESS DENIED TO " + clientIp);
-			return Response.status(Status.FORBIDDEN).build();
-		}
+		/*
+		 * if (!configReader.getAllowedConsumerList().contains(clientIp)) {
+		 * System.out.println(new Timestamp(new Date().getTime()) +
+		 * "[AM SERVICE][WARNING] /CASHENTRIES{FILTERS} RESOURCE ACCESS DENIED TO " +
+		 * clientIp); return Response.status(Status.FORBIDDEN).build(); }
+		 */
 		System.out.println(new Timestamp(new Date().getTime())
 				+ "[AM SERVICE][INFO] /CASHENTRIES{FILTERS} RESOURCE ACCESS GRANTED TO " + clientIp);
 
@@ -115,11 +118,12 @@ public class AMResource {
 	public Response getCashEntriesSumByMonth(@Context HttpServletRequest request) {
 		ConfigReader configReader = new ConfigReader();
 		String clientIp = request.getRemoteAddr();
-		if (!configReader.getAllowedConsumerList().contains(clientIp)) {
-			System.out.println(new Timestamp(new Date().getTime())
-					+ "[AM SERVICE][WARNING] /REPORTS/SUMBYMONTH RESOURCE ACCESS DENIED TO " + clientIp);
-			return Response.status(Status.FORBIDDEN).build();
-		}
+		/*
+		 * if (!configReader.getAllowedConsumerList().contains(clientIp)) {
+		 * System.out.println(new Timestamp(new Date().getTime()) +
+		 * "[AM SERVICE][WARNING] /REPORTS/SUMBYMONTH RESOURCE ACCESS DENIED TO " +
+		 * clientIp); return Response.status(Status.FORBIDDEN).build(); }
+		 */
 		System.out.println(new Timestamp(new Date().getTime())
 				+ "[AM SERVICE][INFO] /REPORTS/SUMBYMONTH RESOURCE ACCESS GRANTED TO " + clientIp);
 		CashEntries entries = new CashEntries();
@@ -132,11 +136,12 @@ public class AMResource {
 	public Response getCashEntriesSumByOwner(@Context HttpServletRequest request) {
 		ConfigReader configReader = new ConfigReader();
 		String clientIp = request.getRemoteAddr();
-		if (!configReader.getAllowedConsumerList().contains(clientIp)) {
-			System.out.println(new Timestamp(new Date().getTime())
-					+ "[AM SERVICE][WARNING] /REPORTS/SUMBYOWNER RESOURCE ACCESS DENIED TO " + clientIp);
-			return Response.status(Status.FORBIDDEN).build();
-		}
+		/*
+		 * if (!configReader.getAllowedConsumerList().contains(clientIp)) {
+		 * System.out.println(new Timestamp(new Date().getTime()) +
+		 * "[AM SERVICE][WARNING] /REPORTS/SUMBYOWNER RESOURCE ACCESS DENIED TO " +
+		 * clientIp); return Response.status(Status.FORBIDDEN).build(); }
+		 */
 		System.out.println(new Timestamp(new Date().getTime())
 				+ "[AM SERVICE][INFO] /REPORTS/SUMBYOWNER RESOURCE ACCESS GRANTED TO " + clientIp);
 		CashEntries entries = new CashEntries();
@@ -149,11 +154,12 @@ public class AMResource {
 	public Response getCashEntriesSumByOwner(@PathParam("year") int year, @Context HttpServletRequest request) {
 		ConfigReader configReader = new ConfigReader();
 		String clientIp = request.getRemoteAddr();
-		if (!configReader.getAllowedConsumerList().contains(clientIp)) {
-			System.out.println(new Timestamp(new Date().getTime())
-					+ "[AM SERVICE][WARNING] /REPORTS/SUMBYYEAR RESOURCE ACCESS DENIED TO " + clientIp);
-			return Response.status(Status.FORBIDDEN).build();
-		}
+		/*
+		 * if (!configReader.getAllowedConsumerList().contains(clientIp)) {
+		 * System.out.println(new Timestamp(new Date().getTime()) +
+		 * "[AM SERVICE][WARNING] /REPORTS/SUMBYYEAR RESOURCE ACCESS DENIED TO " +
+		 * clientIp); return Response.status(Status.FORBIDDEN).build(); }
+		 */
 		System.out.println(new Timestamp(new Date().getTime())
 				+ "[AM SERVICE][INFO] /REPORTS/SUMBYYEAR RESOURCE ACCESS GRANTED TO " + clientIp);
 		double result = dataFacade.getCashEntriesSumByYear(year);
@@ -167,11 +173,12 @@ public class AMResource {
 	public Response getCashEntriesSumByMonthByCategory(@Context HttpServletRequest request) {
 		ConfigReader configReader = new ConfigReader();
 		String clientIp = request.getRemoteAddr();
-		if (!configReader.getAllowedConsumerList().contains(clientIp)) {
-			System.out.println(new Timestamp(new Date().getTime())
-					+ "[AM SERVICE][WARNING] /REPORTS/SUMBYCATEGORY RESOURCE ACCESS DENIED TO " + clientIp);
-			return Response.status(Status.FORBIDDEN).build();
-		}
+		/*
+		 * if (!configReader.getAllowedConsumerList().contains(clientIp)) {
+		 * System.out.println(new Timestamp(new Date().getTime()) +
+		 * "[AM SERVICE][WARNING] /REPORTS/SUMBYCATEGORY RESOURCE ACCESS DENIED TO " +
+		 * clientIp); return Response.status(Status.FORBIDDEN).build(); }
+		 */
 		System.out.println(new Timestamp(new Date().getTime())
 				+ "[AM SERVICE][INFO] /REPORTS/SUMBYCATEGORY RESOURCE ACCESS GRANTED TO " + clientIp);
 		CashEntries entries = new CashEntries();
@@ -185,11 +192,12 @@ public class AMResource {
 			@Context HttpServletRequest request) {
 		ConfigReader configReader = new ConfigReader();
 		String clientIp = request.getRemoteAddr();
-		if (!configReader.getAllowedConsumerList().contains(clientIp)) {
-			System.out.println(new Timestamp(new Date().getTime())
-					+ "[AM SERVICE][WARNING] /REPORTS/TOP5BYCATEGORY RESOURCE ACCESS DENIED TO " + clientIp);
-			return Response.status(Status.FORBIDDEN).build();
-		}
+		/*
+		 * if (!configReader.getAllowedConsumerList().contains(clientIp)) {
+		 * System.out.println(new Timestamp(new Date().getTime()) +
+		 * "[AM SERVICE][WARNING] /REPORTS/TOP5BYCATEGORY RESOURCE ACCESS DENIED TO " +
+		 * clientIp); return Response.status(Status.FORBIDDEN).build(); }
+		 */
 		System.out.println(new Timestamp(new Date().getTime())
 				+ "[AM SERVICE][INFO] /REPORTS/TOP5BYCATEGORY RESOURCE ACCESS GRANTED TO " + clientIp);
 		CashEntries entries = new CashEntries();
@@ -202,11 +210,12 @@ public class AMResource {
 	public Response getCashEntry(@PathParam("id") int id, @Context HttpServletRequest request) {
 		ConfigReader configReader = new ConfigReader();
 		String clientIp = request.getRemoteAddr();
-		if (!configReader.getAllowedConsumerList().contains(clientIp)) {
-			System.out.println(new Timestamp(new Date().getTime())
-					+ "[AM SERVICE][WARNING] /CASHENTRY/{ID} RESOURCE ACCESS DENIED TO " + clientIp);
-			return Response.status(Status.FORBIDDEN).build();
-		}
+		/*
+		 * if (!configReader.getAllowedConsumerList().contains(clientIp)) {
+		 * System.out.println(new Timestamp(new Date().getTime()) +
+		 * "[AM SERVICE][WARNING] /CASHENTRY/{ID} RESOURCE ACCESS DENIED TO " +
+		 * clientIp); return Response.status(Status.FORBIDDEN).build(); }
+		 */
 		System.out.println(new Timestamp(new Date().getTime())
 				+ "[AM SERVICE][INFO] /CASHENTRY/{ID} RESOURCE ACCESS GRANTED TO " + clientIp);
 		CashEntry entry = dataFacade.getCashEntry(id);
@@ -219,11 +228,12 @@ public class AMResource {
 	public Response addCashEntry(CashEntry entry, @Context HttpServletRequest request) {
 		ConfigReader configReader = new ConfigReader();
 		String clientIp = request.getRemoteAddr();
-		if (!configReader.getAllowedConsumerList().contains(clientIp)) {
-			System.out.println(new Timestamp(new Date().getTime())
-					+ "[AM SERVICE][WARNING] /ADDCASHENTRY RESOURCE ACCESS DENIED TO " + clientIp);
-			return Response.status(Status.FORBIDDEN).build();
-		}
+		/*
+		 * if (!configReader.getAllowedConsumerList().contains(clientIp)) {
+		 * System.out.println(new Timestamp(new Date().getTime()) +
+		 * "[AM SERVICE][WARNING] /ADDCASHENTRY RESOURCE ACCESS DENIED TO " + clientIp);
+		 * return Response.status(Status.FORBIDDEN).build(); }
+		 */
 		System.out.println(new Timestamp(new Date().getTime())
 				+ "[AM SERVICE][INFO] /ADDCASHENTRY RESOURCE ACCESS GRANTED TO " + clientIp);
 		try {
@@ -241,11 +251,12 @@ public class AMResource {
 	public Response deleteCashEntry(@PathParam("id") int id, @Context HttpServletRequest request) {
 		ConfigReader configReader = new ConfigReader();
 		String clientIp = request.getRemoteAddr();
-		if (!configReader.getAllowedConsumerList().contains(clientIp)) {
-			System.out.println(new Timestamp(new Date().getTime())
-					+ "[AM SERVICE][WARNING] /DELETECASHENTRY/{ID} RESOURCE ACCESS DENIED TO " + clientIp);
-			return Response.status(Status.FORBIDDEN).build();
-		}
+		/*
+		 * if (!configReader.getAllowedConsumerList().contains(clientIp)) {
+		 * System.out.println(new Timestamp(new Date().getTime()) +
+		 * "[AM SERVICE][WARNING] /DELETECASHENTRY/{ID} RESOURCE ACCESS DENIED TO " +
+		 * clientIp); return Response.status(Status.FORBIDDEN).build(); }
+		 */
 		System.out.println(new Timestamp(new Date().getTime())
 				+ "[AM SERVICE][INFO] /DELETECASHENTRY/{ID} RESOURCE ACCESS GRANTED TO " + clientIp);
 		try {
@@ -264,11 +275,12 @@ public class AMResource {
 	public Response updateCashEntry(CashEntry entry, @Context HttpServletRequest request) {
 		ConfigReader configReader = new ConfigReader();
 		String clientIp = request.getRemoteAddr();
-		if (!configReader.getAllowedConsumerList().contains(clientIp)) {
-			System.out.println(new Timestamp(new Date().getTime())
-					+ "[AM SERVICE][WARNING] /UPDATECASHENTRY RESOURCE ACCESS DENIED TO " + clientIp);
-			return Response.status(Status.FORBIDDEN).build();
-		}
+		/*
+		 * if (!configReader.getAllowedConsumerList().contains(clientIp)) {
+		 * System.out.println(new Timestamp(new Date().getTime()) +
+		 * "[AM SERVICE][WARNING] /UPDATECASHENTRY RESOURCE ACCESS DENIED TO " +
+		 * clientIp); return Response.status(Status.FORBIDDEN).build(); }
+		 */
 		System.out.println(new Timestamp(new Date().getTime())
 				+ "[AM SERVICE][INFO] /UPDATECASHENTRY RESOURCE ACCESS GRANTED TO " + clientIp);
 
@@ -288,11 +300,12 @@ public class AMResource {
 	public Response updateEstimateEntry(CashEntry entry, @Context HttpServletRequest request) {
 		ConfigReader configReader = new ConfigReader();
 		String clientIp = request.getRemoteAddr();
-		if (!configReader.getAllowedConsumerList().contains(clientIp)) {
-			System.out.println(new Timestamp(new Date().getTime())
-					+ "[AM SERVICE][WARNING] /UPDATEESTIMATEENTRY RESOURCE ACCESS DENIED TO " + clientIp);
-			return Response.status(Status.FORBIDDEN).build();
-		}
+		/*
+		 * if (!configReader.getAllowedConsumerList().contains(clientIp)) {
+		 * System.out.println(new Timestamp(new Date().getTime()) +
+		 * "[AM SERVICE][WARNING] /UPDATEESTIMATEENTRY RESOURCE ACCESS DENIED TO " +
+		 * clientIp); return Response.status(Status.FORBIDDEN).build(); }
+		 */
 		System.out.println(new Timestamp(new Date().getTime())
 				+ "[AM SERVICE][INFO] /UPDATEESTIMATEENTRY RESOURCE ACCESS GRANTED TO " + clientIp);
 		try {
@@ -312,11 +325,12 @@ public class AMResource {
 	public Response getCategoryEntries(@Context HttpServletRequest request) {
 		ConfigReader configReader = new ConfigReader();
 		String clientIp = request.getRemoteAddr();
-		if (!configReader.getAllowedConsumerList().contains(clientIp)) {
-			System.out.println(new Timestamp(new Date().getTime())
-					+ "[AM SERVICE][WARNING] /CATEGORYENTRIES RESOURCE ACCESS DENIED TO " + clientIp);
-			return Response.status(Status.FORBIDDEN).build();
-		}
+		/*
+		 * if (!configReader.getAllowedConsumerList().contains(clientIp)) {
+		 * System.out.println(new Timestamp(new Date().getTime()) +
+		 * "[AM SERVICE][WARNING] /CATEGORYENTRIES RESOURCE ACCESS DENIED TO " +
+		 * clientIp); return Response.status(Status.FORBIDDEN).build(); }
+		 */
 		System.out.println(new Timestamp(new Date().getTime())
 				+ "[AM SERVICE][INFO] /CATEGORYENTRIES RESOURCE ACCESS GRANTED TO " + clientIp);
 		CategoryEntries entries = new CategoryEntries();
@@ -329,11 +343,12 @@ public class AMResource {
 	public Response getCategoryEntry(@PathParam("id") int id, @Context HttpServletRequest request) {
 		ConfigReader configReader = new ConfigReader();
 		String clientIp = request.getRemoteAddr();
-		if (!configReader.getAllowedConsumerList().contains(clientIp)) {
-			System.out.println(new Timestamp(new Date().getTime())
-					+ "[AM SERVICE][WARNING] /CATEGORYENTRY/{ID} RESOURCE ACCESS DENIED TO " + clientIp);
-			return Response.status(Status.FORBIDDEN).build();
-		}
+		/*
+		 * if (!configReader.getAllowedConsumerList().contains(clientIp)) {
+		 * System.out.println(new Timestamp(new Date().getTime()) +
+		 * "[AM SERVICE][WARNING] /CATEGORYENTRY/{ID} RESOURCE ACCESS DENIED TO " +
+		 * clientIp); return Response.status(Status.FORBIDDEN).build(); }
+		 */
 		System.out.println(new Timestamp(new Date().getTime())
 				+ "[AM SERVICE][INFO] /CATEGORYENTRY/{ID} RESOURCE ACCESS GRANTED TO " + clientIp);
 		CategoryEntry entry = dataFacade.getCategoryEntry(id);
@@ -346,11 +361,12 @@ public class AMResource {
 	public Response addCategoryEntry(CategoryEntry entry, @Context HttpServletRequest request) {
 		ConfigReader configReader = new ConfigReader();
 		String clientIp = request.getRemoteAddr();
-		if (!configReader.getAllowedConsumerList().contains(clientIp)) {
-			System.out.println(new Timestamp(new Date().getTime())
-					+ "[AM SERVICE][WARNING] /ADDCATEGORYENTRY RESOURCE ACCESS DENIED TO " + clientIp);
-			return Response.status(Status.FORBIDDEN).build();
-		}
+		/*
+		 * if (!configReader.getAllowedConsumerList().contains(clientIp)) {
+		 * System.out.println(new Timestamp(new Date().getTime()) +
+		 * "[AM SERVICE][WARNING] /ADDCATEGORYENTRY RESOURCE ACCESS DENIED TO " +
+		 * clientIp); return Response.status(Status.FORBIDDEN).build(); }
+		 */
 		System.out.println(new Timestamp(new Date().getTime())
 				+ "[AM SERVICE][INFO] /ADDCATEGORYENTRY RESOURCE ACCESS GRANTED TO " + clientIp);
 		dataFacade.addCategoryEntry(entry);
@@ -363,11 +379,12 @@ public class AMResource {
 	public Response updateCategoryEntry(CategoryEntry entry, @Context HttpServletRequest request) {
 		ConfigReader configReader = new ConfigReader();
 		String clientIp = request.getRemoteAddr();
-		if (!configReader.getAllowedConsumerList().contains(clientIp)) {
-			System.out.println(new Timestamp(new Date().getTime())
-					+ "[AM SERVICE][WARNING] /UPDATECATEGORYENTRY/{ID} RESOURCE ACCESS DENIED TO " + clientIp);
-			return Response.status(Status.FORBIDDEN).build();
-		}
+		/*
+		 * if (!configReader.getAllowedConsumerList().contains(clientIp)) {
+		 * System.out.println(new Timestamp(new Date().getTime()) +
+		 * "[AM SERVICE][WARNING] /UPDATECATEGORYENTRY/{ID} RESOURCE ACCESS DENIED TO "
+		 * + clientIp); return Response.status(Status.FORBIDDEN).build(); }
+		 */
 		System.out.println(new Timestamp(new Date().getTime())
 				+ "[AM SERVICE][INFO] /UPDATECATEGORYENTRY/{ID} RESOURCE ACCESS GRANTED TO " + clientIp);
 		try {
@@ -385,11 +402,12 @@ public class AMResource {
 	public Response deleteCategoryEntry(@PathParam("id") int id, @Context HttpServletRequest request) {
 		ConfigReader configReader = new ConfigReader();
 		String clientIp = request.getRemoteAddr();
-		if (!configReader.getAllowedConsumerList().contains(clientIp)) {
-			System.out.println(new Timestamp(new Date().getTime())
-					+ "[AM SERVICE][WARNING] /DELETECATEGORYENTRY/{ID} RESOURCE ACCESS DENIED TO " + clientIp);
-			return Response.status(Status.FORBIDDEN).build();
-		}
+		/*
+		 * if (!configReader.getAllowedConsumerList().contains(clientIp)) {
+		 * System.out.println(new Timestamp(new Date().getTime()) +
+		 * "[AM SERVICE][WARNING] /DELETECATEGORYENTRY/{ID} RESOURCE ACCESS DENIED TO "
+		 * + clientIp); return Response.status(Status.FORBIDDEN).build(); }
+		 */
 		System.out.println(new Timestamp(new Date().getTime())
 				+ "[AM SERVICE][INFO] /DELETECATEGORYENTRY/{ID} RESOURCE ACCESS GRANTED TO " + clientIp);
 		try {
@@ -409,11 +427,12 @@ public class AMResource {
 	public Response getKeywordEntries(@Context HttpServletRequest request) {
 		ConfigReader configReader = new ConfigReader();
 		String clientIp = request.getRemoteAddr();
-		if (!configReader.getAllowedConsumerList().contains(clientIp)) {
-			System.out.println(new Timestamp(new Date().getTime())
-					+ "[AM SERVICE][WARNING] /KEYWORDENTRIES RESOURCE ACCESS DENIED TO " + clientIp);
-			return Response.status(Status.FORBIDDEN).build();
-		}
+		/*
+		 * if (!configReader.getAllowedConsumerList().contains(clientIp)) {
+		 * System.out.println(new Timestamp(new Date().getTime()) +
+		 * "[AM SERVICE][WARNING] /KEYWORDENTRIES RESOURCE ACCESS DENIED TO " +
+		 * clientIp); return Response.status(Status.FORBIDDEN).build(); }
+		 */
 		System.out.println(new Timestamp(new Date().getTime())
 				+ "[AM SERVICE][INFO] /KEYWORDENTRIES RESOURCE ACCESS GRANTED TO " + clientIp);
 		KeywordEntries entries = new KeywordEntries();
@@ -426,11 +445,12 @@ public class AMResource {
 	public Response getKeywordEntry(@PathParam("id") int id, @Context HttpServletRequest request) {
 		ConfigReader configReader = new ConfigReader();
 		String clientIp = request.getRemoteAddr();
-		if (!configReader.getAllowedConsumerList().contains(clientIp)) {
-			System.out.println(new Timestamp(new Date().getTime())
-					+ "[AM SERVICE][WARNING] /KEYWORDENTRY/{ID} RESOURCE ACCESS DENIED TO " + clientIp);
-			return Response.status(Status.FORBIDDEN).build();
-		}
+		/*
+		 * if (!configReader.getAllowedConsumerList().contains(clientIp)) {
+		 * System.out.println(new Timestamp(new Date().getTime()) +
+		 * "[AM SERVICE][WARNING] /KEYWORDENTRY/{ID} RESOURCE ACCESS DENIED TO " +
+		 * clientIp); return Response.status(Status.FORBIDDEN).build(); }
+		 */
 		System.out.println(new Timestamp(new Date().getTime())
 				+ "[AM SERVICE][INFO] /KEYWORDENTRY/{ID} RESOURCE ACCESS GRANTED TO " + clientIp);
 		KeywordEntry entry = dataFacade.getKeywordEntry(id);
@@ -444,11 +464,12 @@ public class AMResource {
 	public Response addKeywordEntry(KeywordEntry entry, @Context HttpServletRequest request) {
 		ConfigReader configReader = new ConfigReader();
 		String clientIp = request.getRemoteAddr();
-		if (!configReader.getAllowedConsumerList().contains(clientIp)) {
-			System.out.println(new Timestamp(new Date().getTime())
-					+ "[AM SERVICE][WARNING] /ADDKEYWORDENTRY RESOURCE ACCESS DENIED TO " + clientIp);
-			return Response.status(Status.FORBIDDEN).build();
-		}
+		/*
+		 * if (!configReader.getAllowedConsumerList().contains(clientIp)) {
+		 * System.out.println(new Timestamp(new Date().getTime()) +
+		 * "[AM SERVICE][WARNING] /ADDKEYWORDENTRY RESOURCE ACCESS DENIED TO " +
+		 * clientIp); return Response.status(Status.FORBIDDEN).build(); }
+		 */
 		System.out.println(new Timestamp(new Date().getTime())
 				+ "[AM SERVICE][INFO] /ADDKEYWORDENTRY RESOURCE ACCESS GRANTED TO " + clientIp);
 		List<KeywordEntry> entries = dataFacade.getKeywordEntries();
@@ -469,11 +490,12 @@ public class AMResource {
 	public Response updateKeywordEntry(KeywordEntry entry, @Context HttpServletRequest request) {
 		ConfigReader configReader = new ConfigReader();
 		String clientIp = request.getRemoteAddr();
-		if (!configReader.getAllowedConsumerList().contains(clientIp)) {
-			System.out.println(new Timestamp(new Date().getTime())
-					+ "[AM SERVICE][WARNING] /UPDATEKEYWORDENTRY RESOURCE ACCESS DENIED TO " + clientIp);
-			return Response.status(Status.FORBIDDEN).build();
-		}
+		/*
+		 * if (!configReader.getAllowedConsumerList().contains(clientIp)) {
+		 * System.out.println(new Timestamp(new Date().getTime()) +
+		 * "[AM SERVICE][WARNING] /UPDATEKEYWORDENTRY RESOURCE ACCESS DENIED TO " +
+		 * clientIp); return Response.status(Status.FORBIDDEN).build(); }
+		 */
 		System.out.println(new Timestamp(new Date().getTime())
 				+ "[AM SERVICE][INFO] /UPDATEKEYWORDENTRY RESOURCE ACCESS GRANTED TO " + clientIp);
 		try {
@@ -491,11 +513,12 @@ public class AMResource {
 	public Response deleteKeywordEntry(@PathParam("id") int id, @Context HttpServletRequest request) {
 		ConfigReader configReader = new ConfigReader();
 		String clientIp = request.getRemoteAddr();
-		if (!configReader.getAllowedConsumerList().contains(clientIp)) {
-			System.out.println(new Timestamp(new Date().getTime())
-					+ "[AM SERVICE][WARNING] /DELETEKEYWORDENTRY RESOURCE ACCESS DENIED TO " + clientIp);
-			return Response.status(Status.FORBIDDEN).build();
-		}
+		/*
+		 * if (!configReader.getAllowedConsumerList().contains(clientIp)) {
+		 * System.out.println(new Timestamp(new Date().getTime()) +
+		 * "[AM SERVICE][WARNING] /DELETEKEYWORDENTRY RESOURCE ACCESS DENIED TO " +
+		 * clientIp); return Response.status(Status.FORBIDDEN).build(); }
+		 */
 		System.out.println(new Timestamp(new Date().getTime())
 				+ "[AM SERVICE][INFO] /DELETEKEYWORDENTRY RESOURCE ACCESS GRANTED TO " + clientIp);
 		try {
@@ -515,11 +538,12 @@ public class AMResource {
 	public Response getOwnerEntries(@Context HttpServletRequest request) {
 		ConfigReader configReader = new ConfigReader();
 		String clientIp = request.getRemoteAddr();
-		/*if (!configReader.getAllowedConsumerList().contains(clientIp)) {
-			System.out.println(new Timestamp(new Date().getTime())
-					+ "[AM SERVICE][WARNING] /OWNERENTRIES RESOURCE ACCESS DENIED TO " + clientIp);
-			return Response.status(Status.FORBIDDEN).build();
-		}*/
+		/*
+		 * if (!configReader.getAllowedConsumerList().contains(clientIp)) {
+		 * System.out.println(new Timestamp(new Date().getTime()) +
+		 * "[AM SERVICE][WARNING] /OWNERENTRIES RESOURCE ACCESS DENIED TO " + clientIp);
+		 * return Response.status(Status.FORBIDDEN).build(); }
+		 */
 		System.out.println(new Timestamp(new Date().getTime())
 				+ "[AM SERVICE][INFO] /OWNERENTRIES RESOURCE ACCESS GRANTED TO " + clientIp);
 		OwnerEntries entries = new OwnerEntries();
@@ -532,11 +556,12 @@ public class AMResource {
 	public Response getOwnerEntry(@PathParam("id") int id, @Context HttpServletRequest request) {
 		ConfigReader configReader = new ConfigReader();
 		String clientIp = request.getRemoteAddr();
-		if (!configReader.getAllowedConsumerList().contains(clientIp)) {
-			System.out.println(new Timestamp(new Date().getTime())
-					+ "[AM SERVICE][WARNING] /OWNERENTRY/{ID} RESOURCE ACCESS DENIED TO " + clientIp);
-			return Response.status(Status.FORBIDDEN).build();
-		}
+		/*
+		 * if (!configReader.getAllowedConsumerList().contains(clientIp)) {
+		 * System.out.println(new Timestamp(new Date().getTime()) +
+		 * "[AM SERVICE][WARNING] /OWNERENTRY/{ID} RESOURCE ACCESS DENIED TO " +
+		 * clientIp); return Response.status(Status.FORBIDDEN).build(); }
+		 */
 		System.out.println(new Timestamp(new Date().getTime())
 				+ "[AM SERVICE][INFO] /OWNERENTRY/{ID} RESOURCE ACCESS GRANTED TO " + clientIp);
 		OwnerEntry entry = dataFacade.getOwnerEntry(id);
@@ -549,11 +574,12 @@ public class AMResource {
 	public Response addOwnerEntry(OwnerEntry entry, @Context HttpServletRequest request) {
 		ConfigReader configReader = new ConfigReader();
 		String clientIp = request.getRemoteAddr();
-		if (!configReader.getAllowedConsumerList().contains(clientIp)) {
-			System.out.println(new Timestamp(new Date().getTime())
-					+ "[AM SERVICE][WARNING] /ADDOWNERENTRY RESOURCE ACCESS DENIED TO " + clientIp);
-			return Response.status(Status.FORBIDDEN).build();
-		}
+		/*
+		 * if (!configReader.getAllowedConsumerList().contains(clientIp)) {
+		 * System.out.println(new Timestamp(new Date().getTime()) +
+		 * "[AM SERVICE][WARNING] /ADDOWNERENTRY RESOURCE ACCESS DENIED TO " +
+		 * clientIp); return Response.status(Status.FORBIDDEN).build(); }
+		 */
 		System.out.println(new Timestamp(new Date().getTime())
 				+ "[AM SERVICE][INFO] /ADDOWNERENTRY RESOURCE ACCESS GRANTED TO " + clientIp);
 		dataFacade.addOwnerEntry(entry);
@@ -566,11 +592,12 @@ public class AMResource {
 	public Response updateOwnerEntry(OwnerEntry entry, @Context HttpServletRequest request) {
 		ConfigReader configReader = new ConfigReader();
 		String clientIp = request.getRemoteAddr();
-		if (!configReader.getAllowedConsumerList().contains(clientIp)) {
-			System.out.println(new Timestamp(new Date().getTime())
-					+ "[AM SERVICE][WARNING] /UPDATEOWNERENTRY RESOURCE ACCESS DENIED TO " + clientIp);
-			return Response.status(Status.FORBIDDEN).build();
-		}
+		/*
+		 * if (!configReader.getAllowedConsumerList().contains(clientIp)) {
+		 * System.out.println(new Timestamp(new Date().getTime()) +
+		 * "[AM SERVICE][WARNING] /UPDATEOWNERENTRY RESOURCE ACCESS DENIED TO " +
+		 * clientIp); return Response.status(Status.FORBIDDEN).build(); }
+		 */
 		System.out.println(new Timestamp(new Date().getTime())
 				+ "[AM SERVICE][INFO] /UPDATEOWNERENTRY RESOURCE ACCESS GRANTED TO " + clientIp);
 		try {
@@ -588,11 +615,12 @@ public class AMResource {
 	public Response deleteOwnerEntry(@PathParam("id") int id, @Context HttpServletRequest request) {
 		ConfigReader configReader = new ConfigReader();
 		String clientIp = request.getRemoteAddr();
-		if (!configReader.getAllowedConsumerList().contains(clientIp)) {
-			System.out.println(new Timestamp(new Date().getTime())
-					+ "[AM SERVICE][WARNING] /DELETEOWNERENTRY/{ID} RESOURCE ACCESS DENIED TO " + clientIp);
-			return Response.status(Status.FORBIDDEN).build();
-		}
+		/*
+		 * if (!configReader.getAllowedConsumerList().contains(clientIp)) {
+		 * System.out.println(new Timestamp(new Date().getTime()) +
+		 * "[AM SERVICE][WARNING] /DELETEOWNERENTRY/{ID} RESOURCE ACCESS DENIED TO " +
+		 * clientIp); return Response.status(Status.FORBIDDEN).build(); }
+		 */
 		System.out.println(new Timestamp(new Date().getTime())
 				+ "[AM SERVICE][INFO] /DELETEOWNERENTRY/{ID} RESOURCE ACCESS GRANTED TO " + clientIp);
 		try {
@@ -611,8 +639,7 @@ public class AMResource {
 	@Path("encryptpropfile")
 	@Produces("text/html")
 	public Response encryptFile(@Context HttpServletRequest request) {
-		System.out.println("STARTING SOMETHING");
-		ConfigReader configReader = new ConfigReader();
+		// ConfigReader configReader = new ConfigReader();
 		// String clientIp = request.getRemoteAddr();
 		// System.out.println("FROM IP:" + clientIp);
 		// if (!configReader.getAllowedConsumerList().contains(clientIp)) {
@@ -640,16 +667,17 @@ public class AMResource {
 	@Path("decryptpropfile")
 	@Produces("text/html")
 	public Response decryptFile(@Context HttpServletRequest request) {
-		ConfigReader configReader = new ConfigReader();
+		/*ConfigReader configReader = new ConfigReader();
 		String clientIp = request.getRemoteAddr();
-		/*
-		 * if (!configReader.getAllowedConsumerList().contains(clientIp)) {
-		 * System.out.println(new Timestamp(new Date().getTime()) +
-		 * "[AM SERVICE][WARNING] /DECRYPTPROPFILE RESOURCE ACCESS DENIED TO " +
-		 * clientIp); return Response.status(Status.FORBIDDEN).build(); }
-		 */
+
+		if (!configReader.getAllowedConsumerList().contains(clientIp)) {
+			System.out.println(new Timestamp(new Date().getTime())
+					+ "[AM SERVICE][WARNING] /DECRYPTPROPFILE RESOURCE ACCESS DENIED TO " + clientIp);
+			return Response.status(Status.FORBIDDEN).build();
+		}
+
 		System.out.println(new Timestamp(new Date().getTime())
-				+ "[AM SERVICE][INFO] /DECRYPTPROPFILE RESOURCE ACCESS GRANTED TO " + clientIp);
+				+ "[AM SERVICE][INFO] /DECRYPTPROPFILE RESOURCE ACCESS GRANTED TO " + clientIp);*/
 		try {
 			new EncryptionHandler().decryptPropFile();
 		} catch (Exception e) {
@@ -676,11 +704,12 @@ public class AMResource {
 		String password = configReader.getDBPassword();
 		String location = configReader.getDBDumpLocation();
 		String clientIp = request.getRemoteAddr();
-		if (!configReader.getAllowedConsumerList().contains(clientIp)) {
-			System.out.println(new Timestamp(new Date().getTime())
-					+ "[AM SERVICE][WARNING] /TAKESNAPSHOT RESOURCE ACCESS DENIED TO " + clientIp);
-			return Response.status(Status.FORBIDDEN).build();
-		}
+		/*
+		 * if (!configReader.getAllowedConsumerList().contains(clientIp)) {
+		 * System.out.println(new Timestamp(new Date().getTime()) +
+		 * "[AM SERVICE][WARNING] /TAKESNAPSHOT RESOURCE ACCESS DENIED TO " + clientIp);
+		 * return Response.status(Status.FORBIDDEN).build(); }
+		 */
 		System.out.println(new Timestamp(new Date().getTime())
 				+ "[AM SERVICE][INFO] /TAKESNAPHOT RESOURCE ACCESS GRANTED TO " + clientIp);
 		Process p = null;
@@ -722,11 +751,12 @@ public class AMResource {
 		String password = configReader.getDBPassword();
 		String location = configReader.getDBDumpLocation();
 		String clientIp = request.getRemoteAddr();
-		if (!configReader.getAllowedConsumerList().contains(clientIp)) {
-			System.out.println(new Timestamp(new Date().getTime())
-					+ "[AM SERVICE][WARNING] /RESTORESNAPSHOT RESOURCE ACCESS DENIED TO " + clientIp);
-			return Response.status(Status.FORBIDDEN).build();
-		}
+		/*
+		 * if (!configReader.getAllowedConsumerList().contains(clientIp)) {
+		 * System.out.println(new Timestamp(new Date().getTime()) +
+		 * "[AM SERVICE][WARNING] /RESTORESNAPSHOT RESOURCE ACCESS DENIED TO " +
+		 * clientIp); return Response.status(Status.FORBIDDEN).build(); }
+		 */
 		System.out.println(new Timestamp(new Date().getTime())
 				+ "[AM SERVICE][INFO] /RESTORESNAPHOT RESOURCE ACCESS GRANTED TO " + clientIp);
 		Process p = null;
@@ -757,34 +787,42 @@ public class AMResource {
 	@Produces("application/xml")
 	public Response getSnapshotEntries(@Context HttpServletRequest request) {
 		ConfigReader configReader = new ConfigReader();
-		String clientIp = request.getRemoteAddr();
+		/*String clientIp = request.getRemoteAddr();
+
 		if (!configReader.getAllowedConsumerList().contains(clientIp)) {
 			System.out.println(new Timestamp(new Date().getTime())
 					+ "[AM SERVICE][WARNING] /SNAPHOTENTRIES RESOURCE ACCESS DENIED TO " + clientIp);
 			return Response.status(Status.FORBIDDEN).build();
 		}
 		System.out.println(new Timestamp(new Date().getTime())
-				+ "[AM SERVICE][INFO] /SNAPHOTENTRIES RESOURCE ACCESS GRANTED TO " + clientIp);
+				+ "[AM SERVICE][INFO] /SNAPHOTENTRIES RESOURCE ACCESS GRANTED TO " + clientIp);*/
 		SnapshotEntries entries = new SnapshotEntries();
 		List<SnapshotEntry> files = new ArrayList<SnapshotEntry>();
 		String location = configReader.getDBDumpLocation();
+		System.out.println("DUMP LOCATION " + location);
 		try {
 			File folder = new File(location);
-			int daysOld = 90;
+			// int daysOld = 90;
 			if (folder.exists()) {
 				File[] listOfFiles = folder.listFiles();
 				SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
 				Date today = new Date();
-				System.out.println(sdf.format(today));
+				// System.out.println(sdf.format(today));
 				for (File listFile : listOfFiles) {
-					String tmp = listFile.getName().substring(0, listFile.getName().length() - 6);
-					Date fileDate = sdf.parse(tmp);
-					long diff = (today.getTime() - fileDate.getTime()) / (1000 * 60 * 60 * 24);
-					System.out.println(listFile + " is " + diff + " days old");
-					if (diff >= 90) {
-						if (listFile.isFile()) {
-							listFile.delete();
-							System.out.println("File needs to be deleted " + listFile);
+					String ext = listFile.getName().substring(listFile.getName().length() - 3,
+							listFile.getName().length());
+					System.out.println("EXT" + ext + " of " + listFile.getName());
+					if (ext.equalsIgnoreCase("sql")) {
+						String tmp = listFile.getName().substring(0, listFile.getName().length() - 6);
+						System.out.println("HERE " + listFile.getName() + " tmp name " + tmp);
+						Date fileDate = sdf.parse(tmp);
+						long diff = (today.getTime() - fileDate.getTime()) / (1000 * 60 * 60 * 24);
+						// System.out.println(listFile + " is " + diff + " days old");
+						if (diff >= 90) {
+							if (listFile.isFile()) {
+								listFile.delete();
+								// System.out.println("File needs to be deleted " + listFile);
+							}
 						}
 					}
 				}
@@ -811,14 +849,15 @@ public class AMResource {
 		String msg = "";
 		ConfigReader configReader = new ConfigReader();
 		String location = configReader.getDBDumpLocation();
-		String clientIp = request.getRemoteAddr();
+		
+		/*String clientIp = request.getRemoteAddr();
 		if (!configReader.getAllowedConsumerList().contains(clientIp)) {
 			System.out.println(new Timestamp(new Date().getTime())
 					+ "[AM SERVICE][WARNING] /DELETESNAPSHOTENTRY/{SNAPSHOT} RESOURCE ACCESS DENIED TO " + clientIp);
 			return Response.status(Status.FORBIDDEN).build();
 		}
 		System.out.println(new Timestamp(new Date().getTime())
-				+ "[AM SERVICE][INFO] /DELETESNAPSHOTENTRY/{SNAPSHOT} RESOURCE ACCESS GRANTED TO " + clientIp);
+				+ "[AM SERVICE][INFO] /DELETESNAPSHOTENTRY/{SNAPSHOT} RESOURCE ACCESS GRANTED TO " + clientIp);*/
 		try {
 			File folder = new File(location);
 			File[] listOfFiles = folder.listFiles();
@@ -844,7 +883,7 @@ public class AMResource {
 		String jsonStr = "{\"balance\": 1000.21, \"name\":\"foo\"}";
 		return Response.ok(jsonStr, MediaType.APPLICATION_JSON).build();
 	}
-	
+
 	@GET
 	@Path("v2/t")
 	@Produces("application/json")
@@ -863,7 +902,7 @@ public class AMResource {
 				+ "{\"firstName\":\"Anna\", \"lastName\":\"Smith\"}]";
 		return Response.ok(jsonStr, MediaType.APPLICATION_JSON).build();
 	}
-	
+
 	@GET
 	@Path("v2/jsonarraytest2")
 	@Produces("application/json")
@@ -928,6 +967,7 @@ public class AMResource {
 	@Path("v2/cashentries")
 	@Produces("application/json")
 	public Response cashEntries() {
+		System.out.println("SEFA ");
 		List<CashEntry> entries = dataFacade.getCashEntries();
 		JSONObject result = new JSONObject();
 		JSONArray objects = new JSONArray();
@@ -943,6 +983,7 @@ public class AMResource {
 			}
 			result.put("entries", objects);
 		} catch (Exception e) {
+			System.out.println("HEYYO "  + e.getMessage() + " HEYYO " );
 			e.printStackTrace();
 		}
 
@@ -1047,7 +1088,7 @@ public class AMResource {
 		// ANNUAL VELOCITY
 		object = new JSONObject();
 		object.put("name", "ANNUAL VELOCITY");
-		//object.put("value", helper.annualVelocity());
+		// object.put("value", helper.annualVelocity());
 		objects.put(object);
 
 		// YTD SUMS

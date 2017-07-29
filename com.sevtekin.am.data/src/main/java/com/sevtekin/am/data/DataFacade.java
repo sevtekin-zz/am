@@ -41,7 +41,7 @@ public class DataFacade {
 			String user = configReader.getDBUser();
 			String password = configReader.getDBPassword();
 			Class.forName("com.mysql.jdbc.Driver").newInstance();
-			connection = DriverManager.getConnection(url, user, password);
+			connection = DriverManager.getConnection(url+"?useSSL=false", user, password);
 			System.out.println(new Timestamp(new Date().getTime()) + " [AM DATA][INFO] Database connection established " + count++);
 		} catch (Exception e) {
 			System.out.println(new Timestamp(new Date().getTime()) + " [AM DATA][ERROR] Cannot connect to database server ");

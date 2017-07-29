@@ -16,7 +16,7 @@ public class EncryptionHandler {
 	
 	public void encryptPropFile() {
 		PropertiesParser parser = new PropertiesParser();
-		String filePath = System.getProperty("user.home") + "/.am/am.properties";
+		String filePath = "/etc/environment";
 		String oldValue = parser.getPropertyValue(filePath, "DBPASSWORD");
 		try {
 			String newValue = encrypt(oldValue);
@@ -28,7 +28,7 @@ public class EncryptionHandler {
 	
 	public void decryptPropFile() {
 		PropertiesParser parser = new PropertiesParser();
-		String filePath = System.getProperty("user.home") + "/.am/am.properties";
+		String filePath = "/etc/environment";
 		String oldValue = parser.getPropertyValue(filePath, "DBPASSWORD");
 		try {
 			String newValue = decrypt(oldValue);
