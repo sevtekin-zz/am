@@ -15,7 +15,7 @@
 		<servlet-name>FileUploadServlet</servlet-name>
 		<url-pattern>/uploadFile</url-pattern>
 	</servlet-mapping-->
-	<security-constraint>
+	<!-- security-constraint>
 		<web-resource-collection>
 			<web-resource-name>requires authentication</web-resource-name>
 			<url-pattern>/*</url-pattern>
@@ -40,7 +40,7 @@
 	</login-config>
 	<security-role>
 		<role-name>amadmin</role-name>
-	</security-role>
+	</security-role-->
 	<context-param>
 		<param-name>javax.faces.STATE_SAVING_METHOD</param-name>
 		<param-value>client</param-value>

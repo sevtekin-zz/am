@@ -5,15 +5,15 @@ services:
    volumes:
    - /etc/localtime:/etc/localtime:ro
    ports:
-   - "6002:9443"
+   - "6002:8443"
 
  service:
    image: ci/servicedev
    volumes:
    - /etc/localtime:/etc/localtime:ro
-   - ~/am/dev/snapshots:/snapshots
+   - ~/am/dev/snapshots:/.am
    ports:
-   - "6001:9443"
+   - "6001:8443"
 
  db:
    image: ci/dbdev

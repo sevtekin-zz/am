@@ -1,17 +1,16 @@
-FROM websphere-liberty
+FROM tomcat
 MAINTAINER Sefa Sevtekin
 ENV DBUSER=amdbuser
 ENV DBPASSWORD=amdb 
-ENV DBDUMPLOCATION=/snapshots
-ENV ALLOWEDCONSUMERS=172.17.0.1,172.16.120.1,172.18.0.1,127.0.0.1,192.168.229.129
+ENV DBDUMPLOCATION=/.am
 ENV DBURL=jdbc:mysql://172.18.0.1:6000/amdb
-COPY bin/amservice.war /opt/ibm/wlp/usr/servers/defaultServer/dropins/ 
-COPY server.xml /opt/ibm/wlp/usr/servers/defaultServer/
-RUN mkdir -p ~/.am
-RUN echo "DBUSER=$DBUSER">~/.am/am.properties
-RUN echo "DBPASSWORD=$DBPASSWORD">>~/.am/am.properties
-RUN echo "DBDUMPLOCATION=$DBDUMPLOCATION">>~/.am/am.properties
-RUN echo "ALLOWEDCONSUMERS=$ALLOWEDCONSUMERS">>~/.am/am.properties
-RUN echo "DBURL=$DBURL">>~/.am/am.properties
+COPY bin/amservice.war /usr/local/tomcat/webapps/.
+COPY server.xml /usr/local/tomcat/conf/.
+RUN mkdir -p /.am
+RUN echo "DBUSER=$DBUSER">/etc/environment
+RUN echo "DBPASSWORD=$DBPASSWORD">>/etc/environment
+RUN echo "DBDUMPLOCATION=$DBDUMPLOCATION">>/etc/environment
+RUN echo "DBURL=$DBURL">>/etc/environment
 RUN apt-get update && apt-get install -y mysql-client
+RUN $JAVA_HOME/bin/keytool -genkey -noprompt -alias tomcat -keyalg RSA -dname "CN=google.com, OU=ID, O=CGP, L=Hursley, S=Hants, C=US" -keystore /root/.keystore -storepass password -keypass password
 

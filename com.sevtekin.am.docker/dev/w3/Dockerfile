@@ -1,7 +1,9 @@
-FROM websphere-liberty
+FROM tomcat
 MAINTAINER Sefa Sevtekin
 ENV SERVICEURIROOT=https://172.18.0.1:6001/amservice
-COPY bin/am.war /opt/ibm/wlp/usr/servers/defaultServer/dropins/ 
-COPY server.xml /opt/ibm/wlp/usr/servers/defaultServer/
-RUN mkdir -p ~/.am
-RUN echo "SERVICEURIROOT=$SERVICEURIROOT">~/.am/am.properties
+COPY bin/am.war /usr/local/tomcat/webapps/.
+COPY server.xml /usr/local/tomcat/conf/.
+COPY tomcat-users.xml /usr/local/tomcat/conf/.
+RUN echo "SERVICEURIROOT=$SERVICEURIROOT">/etc/environment
+RUN $JAVA_HOME/bin/keytool -genkey -noprompt -alias tomcat -keyalg RSA -dname "CN=google.com, OU=ID, O=IBM, L=Hursley, S=Hants, C=US" -keystore /root/.keystore -storepass password -keypass password
+
