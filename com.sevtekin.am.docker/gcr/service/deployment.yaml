@@ -1,0 +1,49 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: amservice
+  labels:
+    app: amservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: amservice
+  template:
+    metadata:
+      labels:
+        app: amservice
+    spec:
+      containers:
+        - image: gcr.io/sefa-am-project/amservice
+          name: amservice
+          env:
+          - name: DBPASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mysql
+                key: password
+          ports:
+            - containerPort: 9442
+              name: amservice
+          volumeMounts:
+            - name: amservice-persistent-storage
+              mountPath: /root/am
+
+        - image: gcr.io/sefa-am-project/dbproxy
+          name: dbproxy
+          env:
+          - name: DBPASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mysql
+                key: password
+          ports:
+            - containerPort: 3306
+              name: dbproxy
+
+      volumes:
+        - name: amservice-persistent-storage
+          gcePersistentDisk:
+            pdName: am-service-disk
+            fsType: ext4
