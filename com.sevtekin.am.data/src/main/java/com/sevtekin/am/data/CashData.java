@@ -145,7 +145,7 @@ public class CashData {
 			conn = facade.createConnection();
 			statement = conn.createStatement();
 			String strStatement = "SELECT c.id as cid,categoryid,amount,duedate,actualdate,ownerid,description,o.name as oname,t.name as tname FROM cashentry as c,ownerentry as o,categoryentry as t where c.ownerid=o.id and c.categoryid=t.id";
-			strStatement += filters + " ORDER BY actualdate ASC";
+			strStatement += " " + filters + " ORDER BY actualdate ASC";
 			ResultSet results = statement.executeQuery(strStatement);
 			while (results.next()) {
 				CashEntry entry = new CashEntry();
