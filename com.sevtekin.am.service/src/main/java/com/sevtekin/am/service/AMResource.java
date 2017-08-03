@@ -105,7 +105,7 @@ public class AMResource {
 		CashEntries entries = new CashEntries();
 		String tmp1 = filters;
 		System.out.println(tmp1);
-		String tmp2 = tmp1.substring(18, tmp1.indexOf(" and"));
+		String tmp2 = tmp1.substring(17, tmp1.indexOf(" and"));
 		tmp1 = tmp1.substring(tmp1.indexOf(" and"), tmp1.length());
 		tmp1 = " and description like '%" + tmp2 + "%'" + tmp1;
 		// System.out.println(tmp1);
