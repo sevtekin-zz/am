@@ -1,6 +1,7 @@
 package com.sevtekin.am.w3.mbean;
 
 import java.io.Serializable;
+import java.net.URLEncoder;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -143,6 +144,9 @@ public class ClientBean implements Serializable {
 			if (getOwnerEntry().getId() != 0)
 				filters += " and ownerid=" + getOwnerEntry().getId();
 			if (filters != "") {
+				filters = filters.trim();
+				filters = URLEncoder.encode(filters, "UTF-8");
+				filters = filters.replace("+", "%20");
 				cashEntries = client.getCashEntries(filters);
 				System.out.println(new Timestamp(new Date().getTime())
 						+ " [AM W3] [INFO] DATA LOADED " + filters);
