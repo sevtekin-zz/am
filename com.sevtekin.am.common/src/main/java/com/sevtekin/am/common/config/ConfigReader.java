@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ConfigReader {
-	public static String configFile = System.getProperty("user.home")
-			+ "/.am/am.properties";
+	//public static String configFile = System.getProperty("user.home")
+	//		+ "/.am/am.properties";
 
 	public ConfigReader() {
 	}
