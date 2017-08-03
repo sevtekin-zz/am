@@ -1,0 +1,65 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: amservice
+  labels:
+    app: amservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: amservice
+  template:
+    metadata:
+      labels:
+        app: amservice
+    spec:
+      containers:
+        - image: sevtekin/service
+          name: amservice
+          imagePullPolicy: Always
+          env:
+          - name: DBPROXY
+            value: mysql:3306
+          - name: DBPASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mysql
+                key: password
+          ports:
+            - containerPort: 8443
+              name: amservice
+          volumeMounts:
+            - name: amservice-persistent-storage
+              mountPath: /am/snapshots
+            - name: tz-config
+              mountPath: /etc/localtime
+        - image: sevtekin/dbproxy
+          imagePullPolicy: Always
+          name: dbproxy
+          ports:
+            - containerPort: 3306
+              name: dbproxy
+      volumes:
+        - name: amservice-persistent-storage
+          gcePersistentDisk:
+            pdName: amservice-disk
+            fsType: ext4
+        - name: tz-config
+          hostPath:
+             path: /usr/share/zoneinfo/US/Pacific
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: amservice
+  labels:
+    app: amservice
+spec:
+  ports:
+    - port: 9442
+      targetPort: 8443
+      protocol: TCP
+  selector:
+    app: amservice
+  type: LoadBalancer

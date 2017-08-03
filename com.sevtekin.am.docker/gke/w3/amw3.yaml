@@ -1,0 +1,50 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: amw3
+  labels:
+    app: am
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: am
+  template:
+    metadata:
+      labels:
+        app: am
+    spec:
+      containers:
+        - image: sevtekin/w3
+          name: amw3
+          imagePullPolicy: Always
+          env:
+           - name: SERVICEURIROOT
+             value: https://10.3.254.87:9442/amservice
+           - name: a
+             value: https://$AMSERVICE_SERVICE_HOST:$AMSERVICE_SERVICE_PORT/amservice
+          ports:
+            - containerPort: 8443
+              name: am
+          volumeMounts:
+            - name: tz-config
+              mountPath: /etc/localtime
+      volumes:
+        - name: tz-config
+          hostPath:
+             path: /usr/share/zoneinfo/US/Pacific    
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: amw3
+  labels:
+    app: am
+spec:
+  ports:
+    - port: 9443
+      targetPort: 8443
+      protocol: TCP
+  selector:
+    app: am
+  type: LoadBalancer
