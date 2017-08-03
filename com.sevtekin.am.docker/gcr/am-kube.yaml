@@ -1,9 +1,0 @@
-version: '2'
-services: 
- w3:
-   image: ci/w3dev
-   volumes:
-   - /etc/localtime:/etc/localtime:ro
-   ports:
-   - "7002:9443"
-
