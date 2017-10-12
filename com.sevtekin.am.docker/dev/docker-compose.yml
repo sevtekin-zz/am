@@ -7,13 +7,13 @@ services:
    ports:
    - "6002:8443"
 
- service:
-   image: ci/servicedev
+ backend:
+   image: ci/backenddev
    volumes:
    - /etc/localtime:/etc/localtime:ro
-   - ~/am/dev/snapshots:/.am
+   - ~/am/dev/snapshots:/am
    ports:
-   - "6001:8443"
+   - "6001:6001"
 
  db:
    image: ci/dbdev

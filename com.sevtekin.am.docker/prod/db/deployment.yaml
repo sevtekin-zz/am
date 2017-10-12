@@ -1,0 +1,45 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: amdb
+  labels:
+    app: am
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: am
+  template:
+    metadata:
+      labels:
+        app: am
+    spec:
+      containers:
+        - image: mysql:latest
+          name: amdb
+          args:
+            - "--max_allowed_packet=128M"
+            - "--ignore-db-dir=lost+found"
+            - "--wait_timeout=60"
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql
+                  key: pass
+          ports:
+            - containerPort: 3306
+              name: mysql
+          volumeMounts:
+            - name: mysql-persistent-storage
+              mountPath: /var/lib/mysql
+            - name: tz-config
+              mountPath: /etc/localtime
+      volumes:
+        - name: mysql-persistent-storage
+          gcePersistentDisk:
+            pdName: amdb-disk
+            fsType: ext4
+        - name: tz-config
+          hostPath:
+             path: /usr/share/zoneinfo/US/Pacific

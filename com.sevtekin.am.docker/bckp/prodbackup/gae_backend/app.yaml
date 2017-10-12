@@ -1,0 +1,19 @@
+runtime: nodejs
+env: flexible
+threadsafe: true
+service: backend
+automatic_scaling:
+  min_num_instances: 1
+  max_num_instances: 5
+  cpu_utilization:
+    target_utilization: 0.5
+env_variables:
+  dbuser: amdbuser
+  dbpass: amdb
+  dbname: amdb
+  dbconn: assetmanager-171616:us-central1:amdb
+  dbport: 3306
+  projectid: assetmanager-171616
+  dbinstance: amdb
+beta_settings:
+  cloud_sql_instances: assetmanager-171616:us-central1:amdb

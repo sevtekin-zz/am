@@ -1,0 +1,52 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: ambackend
+  labels:
+    app: am
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: am
+  template:
+    metadata:
+      labels:
+        app: am
+    spec:
+      containers:
+        - image: us.gcr.io/assetmanager-171616/backend:latest
+          name: ambackend
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 7080
+              name: am
+          volumeMounts:
+            - name: tz-config
+              mountPath: /etc/localtime
+            - name: backend-persistent-storage
+              mountPath: /app/snapshots
+          env:
+            - name: dbname
+              value: 'amdb'
+            - name: dbport
+              value: '3306'
+            - name: dbhost
+              value: '10.36.1.21'
+            - name: dbuser
+              value: 'amdbuser'
+            - name: dumplocation
+              value: '/app/snapshots'
+            - name: dbpass
+              valueFrom:
+                secretKeyRef:
+                  name: mysql
+                  key: password
+      volumes:
+        - name: tz-config
+          hostPath:
+             path: /usr/share/zoneinfo/US/Pacific
+        - name: backend-persistent-storage
+          gcePersistentDisk:
+            pdName: ambackend-disk
+            fsType: ext4

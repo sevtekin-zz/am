@@ -1,0 +1,79 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: am
+  labels:
+    app: am
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: am
+  template:
+    metadata:
+      labels:
+        app: am
+    spec:
+      containers:
+        - image: mysql:latest
+          name: amdb
+          args:
+            - "--max_allowed_packet=128M"
+            - "--ignore-db-dir=lost+found"
+            - "--wait_timeout=60"
+            - "--bind-address=::"
+            - "--sql-mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION"
+          ports:
+            - containerPort: 3306
+              name: amdb
+          volumeMounts:
+            - name: mysql-persistent-storage
+              mountPath: /var/lib/mysql
+            - name: tz-config
+              mountPath: /etc/localtime
+        - image: us.gcr.io/assetmanager-171616/backend:latest
+          name: ambackend
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 443
+              name: ambackend
+          volumeMounts:
+            - name: tz-config
+              mountPath: /etc/localtime
+          env:
+            - name: dbname
+              value: 'amdb'
+            - name: dbport
+              value: '3306'
+            - name: dbhost
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: dbuser
+              value: 'amdbuser'
+            - name: dumplocation
+              value: '/app/snapshots'
+            - name: dbpass
+              value: 'amdb'
+          securityContext:
+            privileged: true
+        - image: us.gcr.io/assetmanager-171616/w3
+          name: amfrontend
+          imagePullPolicy: Always
+          env:
+           - name: SERVICEURIROOT
+             value: https://127.0.0.1:443
+          ports:
+            - containerPort: 8443
+              name: amfrontend
+          volumeMounts:
+            - name: tz-config
+              mountPath: /etc/localtime
+      volumes:
+        - name: mysql-persistent-storage
+          gcePersistentDisk:
+            pdName: amdb-disk
+            fsType: ext4
+        - name: tz-config
+          hostPath:
+             path: /usr/share/zoneinfo/US/Pacific

@@ -1,0 +1,26 @@
+kind: Pod
+apiVersion: v1
+metadata:
+  name: amdb
+  labels:
+    name: am
+spec:
+  containers:
+    - name: amdb
+      image: gcr.io/sefa-am-project/db
+      ports:
+        - containerPort: 3306
+          name: "amdb"
+      volumeMounts:
+        - name: amdb-persistent-storage
+          mountPath: /var/lib/mysql 
+        - name: tz-config
+          mountPath: /etc/localtime
+  volumes:
+    - name: amdb-persistent-storage
+      gcePersistentDisk:
+        pdName: amdb-disk
+        fsType: ext4
+    - name: tz-config
+      hostPath:
+         path: /usr/share/zoneinfo/US/Pacific

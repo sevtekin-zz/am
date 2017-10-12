@@ -1,0 +1,66 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: ambackend
+  labels:
+    app: ambackend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ambackend
+  template:
+    metadata:
+      labels:
+        app: ambackend
+    spec:
+      containers:
+        - image: gcr.io/sefa-am-project/service
+          name: amservice
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8443
+              name: amservice
+          volumeMounts:
+            - name: amservice-persistent-storage
+              mountPath: /am/snapshots
+            - name: tz-config
+              mountPath: /etc/localtime
+        - image: gcr.io/sefa-am-project/db
+          imagePullPolicy: Always
+          name: amdb
+          ports:
+            - containerPort: 3306
+              name: amdb
+          volumeMounts:
+            - name: amdb-persistent-storage
+              mountPath: /var/lib/mysql
+            - name: tz-config
+              mountPath: /etc/localtime
+      volumes:
+        - name: amservice-persistent-storage
+          gcePersistentDisk:
+            pdName: amservice-disk
+            fsType: ext4
+        - name: amdb-persistent-storage
+          gcePersistentDisk:
+            pdName: amdb-disk
+            fsType: ext4
+        - name: tz-config
+          hostPath:
+             path: /usr/share/zoneinfo/US/Pacific
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ambackend
+  labels:
+    app: ambackend
+spec:
+  ports:
+    - port: 9442
+      targetPort: 8443
+      protocol: TCP
+  selector:
+    app: ambackend
+  type: LoadBalancer

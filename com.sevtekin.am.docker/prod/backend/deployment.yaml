@@ -1,0 +1,39 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: ambackend
+  labels:
+    app: am
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: am
+  template:
+    metadata:
+      labels:
+        app: am
+    spec:
+      containers:
+        - image: us.gcr.io/assetmanager-171616/backend:latest
+          name: ambackend
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 443
+              name: am
+          env:
+            - name: dbname
+              value: 'amdb'
+            - name: dbport
+              value: '3306'
+            - name: dbhost
+              value: '10.0.1.5'
+            - name: dbuser
+              value: 'amdbuser'
+            - name: dumplocation
+              value: '/app/snapshots'
+            - name: dbpass
+              valueFrom:
+                secretKeyRef:
+                  name: mysql
+                  key: pass

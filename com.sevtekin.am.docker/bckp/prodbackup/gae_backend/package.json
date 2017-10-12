@@ -1,0 +1,22 @@
+{
+  "name": "ambackend",
+  "version": "1.0.0",
+  "description": "Node.js AM",
+  "author": "Sefa Sevtekin",
+  "main": "ambackend.js",
+  "scripts": {
+    "start": "node ambackend.js"
+  },
+  "engines": {
+    "node": ">=4.3.2"
+  },
+  "dependencies": {
+    "@google-cloud/datastore": "~1.1.0",
+    "body-parser": "*",
+    "express": ">4.15.2",
+    "googleapis": "^21.3.0",
+    "https": "*",
+    "mysql": ">2.14.0"
+  },
+  "license": "ISC"
+}

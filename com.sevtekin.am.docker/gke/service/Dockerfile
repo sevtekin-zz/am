@@ -5,6 +5,7 @@ ENV DBPASSWORD=Sw+2Wr8am4z4NXWwYcQ7/w\=\=
 ENV DBDUMPLOCATION=/am/snapshots
 ENV DBURL=jdbc:mysql://127.0.0.1:3306/amdb
 COPY bin/amservice.war /usr/local/tomcat/webapps/. 
+RUN rm -rf /usr/local/tomcat/webapps/examples
 COPY server.xml /usr/local/tomcat/conf/.
 #RUN echo "tomcat.util.http.parser.HttpParser.requestTargetAllow=|'{ }<>=%#" >> /usr/local/tomcat/conf/catalina.properties
 RUN mkdir -p /am/snapshots

@@ -1,0 +1,48 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: amfrontend
+  labels:
+    app: am
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: am
+  template:
+    metadata:
+      labels:
+        app: am
+    spec:
+      containers:
+        - image: gcr.io/sefa-am-project/w3
+          name: amfrontend
+          imagePullPolicy: Always
+          env:
+           - name: SERVICEURIROOT
+             value: https://104.196.230.16:9442/amservice
+          ports:
+            - containerPort: 8443
+              name: am
+          volumeMounts:
+            - name: tz-config
+              mountPath: /etc/localtime
+      volumes:
+        - name: tz-config
+          hostPath:
+             path: /usr/share/zoneinfo/US/Pacific    
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: amfrontend
+  labels:
+    app: am
+spec:
+  ports:
+    - port: 9443
+      targetPort: 8443
+      protocol: TCP
+  selector:
+    app: am
+  type: LoadBalancer

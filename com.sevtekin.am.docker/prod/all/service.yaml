@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: am
+  labels:
+    app: am
+spec:
+  ports:
+    - port: 3306
+      name: amdb
+    - port: 443
+      name: ambackend
+    - port: 8443
+      name: amfrontend
+  selector:
+    app: am
+  type: LoadBalancer

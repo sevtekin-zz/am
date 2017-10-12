@@ -1,0 +1,16 @@
+{
+  "name": "ambackend",
+  "version": "1.0.0",
+  "description": "Node.js AM",
+  "author": "Sefa Sevtekin",
+  "main": "ambackend.js",
+  "scripts": {
+    "start": "node ambackend.js"
+  },
+  "dependencies": {
+    "body-parser": "*",
+    "dateformat": "^3.0.2",
+    "express": "^4.13.3",
+    "mysql": "*"
+  }
+}
