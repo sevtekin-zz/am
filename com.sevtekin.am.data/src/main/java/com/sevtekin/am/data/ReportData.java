@@ -25,7 +25,6 @@ public class ReportData {
 		facade = DataFacade.getInstance();
 	}
 
-	
 	protected List<CashEntry> selectSumByMonth() {
 		List<CashEntry> entries = new ArrayList<CashEntry>();
 		try {
@@ -38,8 +37,7 @@ public class ReportData {
 				entry.setAmount(results.getDouble("amount"));
 				String month = results.getString("mnth");
 				String year = results.getString("yr");
-				Date date = new SimpleDateFormat("yyyy/MM/dd").parse(year + "/"
-						+ month + "/01");
+				Date date = new SimpleDateFormat("yyyy/MM/dd").parse(year + "/" + month + "/01");
 				Calendar calendar = Calendar.getInstance();
 				calendar.setTime(date);
 				calendar.add(Calendar.MONTH, 1);
@@ -52,8 +50,7 @@ public class ReportData {
 			results.close();
 			statement.close();
 			conn.close();
-			System.out.println(new Timestamp(new Date().getTime())
-					+ " [AM DATA][INFO] " + strStatement);
+			System.out.println(new Timestamp(new Date().getTime()) + " [AM DATA][INFO] " + strStatement);
 		} catch (SQLException | ParseException e) {
 			System.out.println("[AM DATA][ERROR]");
 			e.printStackTrace();
@@ -77,8 +74,7 @@ public class ReportData {
 				entry.setCategoryEntry(category);
 				String month = results.getString("mnth");
 				String year = results.getString("yr");
-				Date date = new SimpleDateFormat("yyyy/MM/dd").parse(year + "/"
-						+ month + "/01");
+				Date date = new SimpleDateFormat("yyyy/MM/dd").parse(year + "/" + month + "/01");
 				Calendar calendar = Calendar.getInstance();
 				calendar.setTime(date);
 				calendar.add(Calendar.MONTH, 1);
@@ -91,21 +87,21 @@ public class ReportData {
 			results.close();
 			statement.close();
 			conn.close();
-			System.out.println(new Timestamp(new Date().getTime())
-					+ " [AM DATA][INFO] " + strStatement);
+			System.out.println(new Timestamp(new Date().getTime()) + " [AM DATA][INFO] " + strStatement);
 		} catch (SQLException | ParseException e) {
-						System.out.println("[AM DATA][ERROR]");
+			System.out.println("[AM DATA][ERROR]");
 			e.printStackTrace();
 		}
 		return entries;
 	}
-	
-	protected List<CashEntry> selectSumByMonthByCategory(int myyear,String sort) {
+
+	protected List<CashEntry> selectSumByMonthByCategory(int myyear, String sort) {
 		List<CashEntry> entries = new ArrayList<CashEntry>();
 		try {
 			conn = facade.createConnection();
 			statement = conn.createStatement();
-			String strStatement = "select sum(amount) as samount,categoryid,name,yr FROM amdb.monthlytotalsbycategory where yr='" + myyear + "' group by categoryid order by samount " + sort + " limit 10";
+			String strStatement = "select sum(amount) as samount,categoryid,name,yr FROM amdb.monthlytotalsbycategory where yr='"
+					+ myyear + "' group by categoryid order by samount " + sort + " limit 10";
 			System.out.println(strStatement);
 			ResultSet results = statement.executeQuery(strStatement);
 			while (results.next()) {
@@ -120,15 +116,14 @@ public class ReportData {
 			results.close();
 			statement.close();
 			conn.close();
-			System.out.println(new Timestamp(new Date().getTime())
-					+ " [AM DATA][INFO] " + strStatement);
+			System.out.println(new Timestamp(new Date().getTime()) + " [AM DATA][INFO] " + strStatement);
 		} catch (Exception e) {
-						System.out.println("[AM DATA][ERROR]");
+			System.out.println("[AM DATA][ERROR]");
 			e.printStackTrace();
 		}
 		return entries;
 	}
-	
+
 	protected List<CashEntry> selectSumByCategory() {
 		List<CashEntry> entries = new ArrayList<CashEntry>();
 		try {
@@ -145,15 +140,14 @@ public class ReportData {
 			results.close();
 			statement.close();
 			conn.close();
-			System.out.println(new Timestamp(new Date().getTime())
-					+ " [AM DATA][INFO] " + strStatement);
+			System.out.println(new Timestamp(new Date().getTime()) + " [AM DATA][INFO] " + strStatement);
 		} catch (Exception e) {
-						System.out.println("[AM DATA][ERROR]");
+			System.out.println("[AM DATA][ERROR]");
 			e.printStackTrace();
 		}
 		return entries;
 	}
-	
+
 	protected List<CashEntry> selectSumByOwner() {
 		List<CashEntry> entries = new ArrayList<CashEntry>();
 		try {
@@ -173,32 +167,31 @@ public class ReportData {
 			results.close();
 			statement.close();
 			conn.close();
-			System.out.println(new Timestamp(new Date().getTime())
-					+ " [AM DATA][INFO] " + strStatement);
+			System.out.println(new Timestamp(new Date().getTime()) + " [AM DATA][INFO] " + strStatement);
 		} catch (SQLException e) {
 			System.out.println("[AM DATA][ERROR]");
 			e.printStackTrace();
 		}
 		return entries;
 	}
-	
+
 	protected double selectSumByYear(int year) {
-		double result=0.0;
+		double result = 0.0;
 		try {
-			String start = year+"/01/01";
-			String stop = year+"/12/31";
+			String start = year + "/01/01";
+			String stop = year + "/12/31";
 			conn = facade.createConnection();
 			statement = conn.createStatement();
-			String strStatement = "SELECT sum(amount) as samount FROM cashentry where actualdate>='" + start + "' AND actualdate<='" + stop + "'";
+			String strStatement = "SELECT sum(amount) as samount FROM cashentry where actualdate>='" + start
+					+ "' AND actualdate<='" + stop + "'";
 			ResultSet results = statement.executeQuery(strStatement);
 			while (results.next()) {
-				result=results.getDouble("samount");
+				result = results.getDouble("samount");
 			}
 			results.close();
 			statement.close();
 			conn.close();
-			System.out.println(new Timestamp(new Date().getTime())
-					+ " [AM DATA][INFO] " + strStatement);
+			System.out.println(new Timestamp(new Date().getTime()) + " [AM DATA][INFO] " + strStatement);
 		} catch (SQLException e) {
 			System.out.println("[AM DATA][ERROR]");
 			e.printStackTrace();

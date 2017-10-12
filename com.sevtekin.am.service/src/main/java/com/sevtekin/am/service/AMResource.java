@@ -100,15 +100,19 @@ public class AMResource {
 		 * clientIp); return Response.status(Status.FORBIDDEN).build(); }
 		 */
 		System.out.println(new Timestamp(new Date().getTime())
-				+ "[AM SERVICE][INFO] /CASHENTRIES{FILTERS} RESOURCE ACCESS GRANTED TO " + clientIp);
+				+ "[AM SERVICE][INFO] /CASHENTRIES/{FILTERS} RESOURCE ACCESS GRANTED TO " + clientIp);
 
 		CashEntries entries = new CashEntries();
 		String tmp1 = filters;
-		System.out.println(tmp1);
+		System.out.println("RAW" + tmp1);
 		String tmp2 = tmp1.substring(17, tmp1.indexOf(" and"));
 		tmp1 = tmp1.substring(tmp1.indexOf(" and"), tmp1.length());
-		tmp1 = " and description like '%" + tmp2 + "%'" + tmp1;
-		// System.out.println(tmp1);
+		if (tmp2 != "") 
+			tmp1 = " and description like '%" + tmp2 + "%'" + tmp1;
+		else
+		    tmp1 = tmp1.substring(3,tmp1.length());
+		System.out.println("TMP2 " + tmp2);
+		System.out.println("TMP1 " + tmp1);
 		entries.setCashEntry(dataFacade.getCashEntries(tmp1));
 		return Response.ok(entries, MediaType.APPLICATION_XML).build();
 	}
@@ -667,17 +671,19 @@ public class AMResource {
 	@Path("decryptpropfile")
 	@Produces("text/html")
 	public Response decryptFile(@Context HttpServletRequest request) {
-		/*ConfigReader configReader = new ConfigReader();
-		String clientIp = request.getRemoteAddr();
-
-		if (!configReader.getAllowedConsumerList().contains(clientIp)) {
-			System.out.println(new Timestamp(new Date().getTime())
-					+ "[AM SERVICE][WARNING] /DECRYPTPROPFILE RESOURCE ACCESS DENIED TO " + clientIp);
-			return Response.status(Status.FORBIDDEN).build();
-		}
-
-		System.out.println(new Timestamp(new Date().getTime())
-				+ "[AM SERVICE][INFO] /DECRYPTPROPFILE RESOURCE ACCESS GRANTED TO " + clientIp);*/
+		/*
+		 * ConfigReader configReader = new ConfigReader(); String clientIp =
+		 * request.getRemoteAddr();
+		 * 
+		 * if (!configReader.getAllowedConsumerList().contains(clientIp)) {
+		 * System.out.println(new Timestamp(new Date().getTime()) +
+		 * "[AM SERVICE][WARNING] /DECRYPTPROPFILE RESOURCE ACCESS DENIED TO " +
+		 * clientIp); return Response.status(Status.FORBIDDEN).build(); }
+		 * 
+		 * System.out.println(new Timestamp(new Date().getTime()) +
+		 * "[AM SERVICE][INFO] /DECRYPTPROPFILE RESOURCE ACCESS GRANTED TO " +
+		 * clientIp);
+		 */
 		try {
 			new EncryptionHandler().decryptPropFile();
 		} catch (Exception e) {
@@ -787,15 +793,16 @@ public class AMResource {
 	@Produces("application/xml")
 	public Response getSnapshotEntries(@Context HttpServletRequest request) {
 		ConfigReader configReader = new ConfigReader();
-		/*String clientIp = request.getRemoteAddr();
-
-		if (!configReader.getAllowedConsumerList().contains(clientIp)) {
-			System.out.println(new Timestamp(new Date().getTime())
-					+ "[AM SERVICE][WARNING] /SNAPHOTENTRIES RESOURCE ACCESS DENIED TO " + clientIp);
-			return Response.status(Status.FORBIDDEN).build();
-		}
-		System.out.println(new Timestamp(new Date().getTime())
-				+ "[AM SERVICE][INFO] /SNAPHOTENTRIES RESOURCE ACCESS GRANTED TO " + clientIp);*/
+		/*
+		 * String clientIp = request.getRemoteAddr();
+		 * 
+		 * if (!configReader.getAllowedConsumerList().contains(clientIp)) {
+		 * System.out.println(new Timestamp(new Date().getTime()) +
+		 * "[AM SERVICE][WARNING] /SNAPHOTENTRIES RESOURCE ACCESS DENIED TO " +
+		 * clientIp); return Response.status(Status.FORBIDDEN).build(); }
+		 * System.out.println(new Timestamp(new Date().getTime()) +
+		 * "[AM SERVICE][INFO] /SNAPHOTENTRIES RESOURCE ACCESS GRANTED TO " + clientIp);
+		 */
 		SnapshotEntries entries = new SnapshotEntries();
 		List<SnapshotEntry> files = new ArrayList<SnapshotEntry>();
 		String location = configReader.getDBDumpLocation();
@@ -849,15 +856,17 @@ public class AMResource {
 		String msg = "";
 		ConfigReader configReader = new ConfigReader();
 		String location = configReader.getDBDumpLocation();
-		
-		/*String clientIp = request.getRemoteAddr();
-		if (!configReader.getAllowedConsumerList().contains(clientIp)) {
-			System.out.println(new Timestamp(new Date().getTime())
-					+ "[AM SERVICE][WARNING] /DELETESNAPSHOTENTRY/{SNAPSHOT} RESOURCE ACCESS DENIED TO " + clientIp);
-			return Response.status(Status.FORBIDDEN).build();
-		}
-		System.out.println(new Timestamp(new Date().getTime())
-				+ "[AM SERVICE][INFO] /DELETESNAPSHOTENTRY/{SNAPSHOT} RESOURCE ACCESS GRANTED TO " + clientIp);*/
+
+		/*
+		 * String clientIp = request.getRemoteAddr(); if
+		 * (!configReader.getAllowedConsumerList().contains(clientIp)) {
+		 * System.out.println(new Timestamp(new Date().getTime()) +
+		 * "[AM SERVICE][WARNING] /DELETESNAPSHOTENTRY/{SNAPSHOT} RESOURCE ACCESS DENIED TO "
+		 * + clientIp); return Response.status(Status.FORBIDDEN).build(); }
+		 * System.out.println(new Timestamp(new Date().getTime()) +
+		 * "[AM SERVICE][INFO] /DELETESNAPSHOTENTRY/{SNAPSHOT} RESOURCE ACCESS GRANTED TO "
+		 * + clientIp);
+		 */
 		try {
 			File folder = new File(location);
 			File[] listOfFiles = folder.listFiles();
@@ -983,7 +992,7 @@ public class AMResource {
 			}
 			result.put("entries", objects);
 		} catch (Exception e) {
-			System.out.println("HEYYO "  + e.getMessage() + " HEYYO " );
+			System.out.println("HEYYO " + e.getMessage() + " HEYYO ");
 			e.printStackTrace();
 		}
 

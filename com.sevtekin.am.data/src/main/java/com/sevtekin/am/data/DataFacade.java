@@ -40,7 +40,7 @@ public class DataFacade {
 			String url = configReader.getDBURL();
 			String user = configReader.getDBUser();
 			String password = configReader.getDBPassword();
-			Class.forName("com.mysql.jdbc.Driver").newInstance();
+			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
 			connection = DriverManager.getConnection(url+"?useSSL=false", user, password);
 			System.out.println(new Timestamp(new Date().getTime()) + " [AM DATA][INFO] Database connection established " + count++);
 		} catch (Exception e) {

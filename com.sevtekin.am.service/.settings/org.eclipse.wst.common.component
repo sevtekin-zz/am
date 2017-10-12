@@ -4,10 +4,7 @@
         <wb-resource deploy-path="/" source-path="/src/main/webapp" tag="defaultRootSource"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/resources"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/java"/>
-        <dependent-module archiveName="data-20170724.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/com.sevtekin.am.data/com.sevtekin.am.data">
-            <dependency-type>uses</dependency-type>
-        </dependent-module>
-        <dependent-module archiveName="common-20170724.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/com.sevtekin.am.common/com.sevtekin.am.common">
+        <dependent-module archiveName="data-20170811.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/com.sevtekin.am.data/com.sevtekin.am.data">
             <dependency-type>uses</dependency-type>
         </dependent-module>
         <property name="java-output-path" value="/com.sevtekin.am.service/target/classes"/>
