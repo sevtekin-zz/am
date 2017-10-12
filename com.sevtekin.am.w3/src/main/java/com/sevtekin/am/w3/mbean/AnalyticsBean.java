@@ -38,6 +38,7 @@ public class AnalyticsBean implements Serializable {
 	double cc = 0.0;
 	double ccca = 0.0;
 	double cs = 0.0;
+	double cb = 0.0;
 	double total = 0.0;
 	double grandTotal = 0.0;
 
@@ -49,7 +50,7 @@ public class AnalyticsBean implements Serializable {
 	List<CashEntry> accountSums = null;
 	List<CashEntry> velocities = null;
 	List<CashEntry> annuallySpentGained = null;
-	List<CashEntry> cashEntries = null;
+	//List<CashEntry> cashEntries = null;
 	private LineChartModel trendsChart;
 	private Date beforeDate = null;
 	private Date afterDate = null;
@@ -83,17 +84,19 @@ public class AnalyticsBean implements Serializable {
 	private double carMaintenanceGoal = -4000.00;
 	private double carMaintenanceGoalDiff = 0.0;
 	private double estimateGoalDiff = 0.0;
-	private double dailyVelocityDiff = 0.0; 
+	private double dailyVelocityDiff = 0.0;
+	
+	
 
-	@PostConstruct
-	public void initialize() {
+	public AnalyticsBean() {
 		int cmonth = Integer.parseInt(new SimpleDateFormat("MM").format(new Date()));
 		int cyear = Integer.parseInt(new SimpleDateFormat("yyyy").format(new Date()));
 		List<CategoryEntry> cats = client.getCategoryEntries();
-		List<CashEntry> sums = client.getCashEntriesSumByMonthByCategory();
+		List<CashEntry> sums = client.getSumByMonthByCategory();
+		sumByMonthByCategoryEntries = sums;
 		estimateEntries = client.getEstimateEntries();
-		sumByMonthEntries = client.getCashEntriesSumByMonth();
-		cashEntries = client.getCashEntries();
+		sumByMonthEntries = client.getSumByMonth();
+		//cashEntries = client.getCashEntries();
 		Date earliest = new Date();
 		for (CashEntry e : sums)
 			if (earliest.after(e.getActualdate()))
@@ -126,7 +129,7 @@ public class AnalyticsBean implements Serializable {
 				result.add(e);
 			}
 		}
-
+        System.out.println("1--------------");
 		for (CashEntry cash : sums)
 			if (cash.getAmount() < 0)
 				cash.setAmount(cash.getAmount() * -1);
@@ -174,9 +177,14 @@ public class AnalyticsBean implements Serializable {
 				result.add(e);
 			}
 		}
+		
+		System.out.println("2--------------");
 
 		createSumByMonthByCategoryChart();
-		entries = client.getCashEntriesSumByOwner();
+		
+		System.out.println("3--------------");
+		
+		entries = client.getSumByOwner();
 		Date today = new Date();
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(today);
@@ -199,10 +207,16 @@ public class AnalyticsBean implements Serializable {
 			else if (owner.equalsIgnoreCase("CHASE CREDIT - A"))
 				ccca = entry.getAmount();
 			else if (owner.equalsIgnoreCase("CHASE SAVINGS"))
-				 cs = entry.getAmount();
+				cs = entry.getAmount();
+			else if (owner.equalsIgnoreCase("COINBASE ASSETS"))
+				cb = entry.getAmount();
 
 		}
-		total = wfc + wfsa + wfsb + wfcca + wfccb + cc + ccca +  cs;
+		total = wfc + wfsa + wfsb + wfcca + wfccb + cc + ccca + cs + cb;
+		
+		System.out.println("4--------------");
+		
+		
 		accountSums = new ArrayList<CashEntry>();
 		CashEntry accountSum = new CashEntry();
 		OwnerEntry account = new OwnerEntry();
@@ -231,7 +245,7 @@ public class AnalyticsBean implements Serializable {
 		accountSum.setOwnerEntry(account);
 		accountSum.setAmount(wfcca);
 		accountSums.add(accountSum);
-		
+
 		accountSum = new CashEntry();
 		account = new OwnerEntry();
 		account.setName("WF CREDIT - B");
@@ -245,30 +259,39 @@ public class AnalyticsBean implements Serializable {
 		accountSum.setOwnerEntry(account);
 		accountSum.setAmount(cc);
 		accountSums.add(accountSum);
-		
+
 		accountSum = new CashEntry();
 		account = new OwnerEntry();
 		account.setName("CHASE CREDIT - A");
 		accountSum.setOwnerEntry(account);
 		accountSum.setAmount(ccca);
 		accountSums.add(accountSum);
-        
+
 		accountSum = new CashEntry();
 		account = new OwnerEntry();
 		account.setName("CHASE SAVINGS");
 		accountSum.setOwnerEntry(account);
 		accountSum.setAmount(cs);
 		accountSums.add(accountSum);
+		
+		accountSum = new CashEntry();
+		account = new OwnerEntry();
+		account.setName("COINBASE ASSETS");
+		accountSum.setOwnerEntry(account);
+		accountSum.setAmount(cb);
+		accountSums.add(accountSum);
+		
+		System.out.println("5--------------");
 
-		List<CashEntry> tmp = client.getTop10ByCategory(year, "desc");
+		List<CashEntry> tmp = client.getSumByMonthByCategory(year, "desc");
 		top10Gains = new ArrayList<CashEntry>();
 		for (CashEntry e : tmp)
 			if (e.getAmount() > 0)
 				top10Gains.add(e);
 
-		tmp = client.getTop10ByCategory(year, "asc");
+		List<CashEntry> tmp2 = client.getSumByMonthByCategory(year, "asc");
 		top10Losses = new ArrayList<CashEntry>();
-		for (CashEntry e : tmp)
+		for (CashEntry e : tmp2)
 			if (e.getAmount() < 0)
 				top10Losses.add(e);
 		beforeDate = calendar.getTime();
@@ -289,76 +312,97 @@ public class AnalyticsBean implements Serializable {
 		} catch (ParseException e1) {
 			e1.printStackTrace();
 		}
+		
+		System.out.println("6--------------");
+		
+		
 		velocities = new ArrayList<CashEntry>();
 
-		String ccmonth = new SimpleDateFormat("MM").format(today);
+		int ccmonth = Integer.parseInt(new SimpleDateFormat("MM").format(new Date()));
+		int ccyear = Integer.parseInt(new SimpleDateFormat("yyyy").format(new Date()));
+		
 		CashEntry velocity = new CashEntry();
 		velocity.setDescription("THIS MONTH RETAINED");
-		velocity.setAmount(calculateMonthlyRetained(Integer.parseInt(ccmonth)));
+		velocity.setAmount(calculateMonthlyRetained(ccyear,ccmonth));
 		velocities.add(velocity);
+		
+		System.out.println("7--------------");
 
 		velocity = new CashEntry();
 		velocity.setDescription("LAST MONTH RETAINED");
-		velocity.setAmount(calculateMonthlyRetained(Integer.parseInt(ccmonth) - 1));
+		velocity.setAmount(calculateMonthlyRetained(ccyear,ccmonth- 1));
 		velocities.add(velocity);
+		
+		System.out.println("8--------------");
 
 		velocity = new CashEntry();
 		velocity.setDescription("MONTHLY VELOCITY");
 		velocity.setAmount(calculateMonthlyVelocity());
 		velocities.add(velocity);
+		
+		System.out.println("9--------------");
 
 		velocity = new CashEntry();
 		velocity.setDescription("THIS YEAR RETAINED ");
 		velocity.setAmount(calculateYearlyRetained(year));
 		velocities.add(velocity);
+		
+		System.out.println("10-------------");
 
 		velocity = new CashEntry();
 		velocity.setDescription("LAST YEAR RETAINED ");
 		velocity.setAmount(calculateYearlyRetained(year - 1));
 		velocities.add(velocity);
+		
+		System.out.println("11-------------");
 
 		velocity = new CashEntry();
 		velocity.setDescription("ANNUAL RET'D AVERAGE");
 		velocity.setAmount(calculateAnnuallyRetainedAverage());
 		velocities.add(velocity);
+		
+		System.out.println("12-------------");
 
 		velocity = new CashEntry();
 		velocity.setDescription("THIS YEAR VELOCITY");
 		double thisYear = calculateYearlyVelocity(year);
 		velocity.setAmount(thisYear);
 		velocities.add(velocity);
+		
+		System.out.println("13-------------");
 
 		velocity = new CashEntry();
 		velocity.setDescription("LAST YEAR VELOCITY");
 		double lastYear = calculateYearlyVelocity(year - 1);
 		velocity.setAmount(lastYear);
 		velocities.add(velocity);
+		
+		System.out.println("14-------------");
 
 		velocity = new CashEntry();
 		velocity.setDescription("ANNUAL VELOCITY");
 		velocity.setAmount(calculateYearlyVelocity());
 		velocities.add(velocity);
+		
+		System.out.println("15-------------");
+		
+		
 
-		annuallySpentGained = new ArrayList<CashEntry>();
 		CashEntry entry = new CashEntry();
-		entry.setAmount(calculateYearlyGained(year));
-		entry.setDescription("THIS YEAR - GAINED");
-		annuallySpentGained.add(entry);
+		annuallySpentGained = new ArrayList<CashEntry>();
+		for (int i = year; i >= year -3; i--) {
+			entry = new CashEntry();
+			entry.setAmount(calculateYearlyGained(i));
+			entry.setDescription(i +  " GAINED");
+			annuallySpentGained.add(entry);
 
-		entry = new CashEntry();
-		entry.setAmount(calculateYearlySpent(year));
-		entry.setDescription("THIS YEAR - SPENT");
-		annuallySpentGained.add(entry);
+			entry = new CashEntry();
+			entry.setAmount(calculateYearlySpent(i));
+			entry.setDescription(i +  " SPENT");
+			annuallySpentGained.add(entry);
+		}
 
-		entry = new CashEntry();
-		entry.setAmount(calculateYearlyGained(year - 1));
-		entry.setDescription("LAST YEAR - GAINED");
-		annuallySpentGained.add(entry);
-
-		entry = new CashEntry();
-		entry.setAmount(calculateYearlySpent(year - 1));
-		entry.setDescription("LAST YEAR - SPENT");
-		annuallySpentGained.add(entry);
+		System.out.println("16--------------");
 		
 		calculateEntertainmentGoal();
 		calculateVacationGoal();
@@ -367,8 +411,16 @@ public class AnalyticsBean implements Serializable {
 		calculateHorseCareGoal();
 		calculateCarMaintenanceGoal();
 		calculateEstimateGoal();
-		calculateDailyVelocity();
-		findUncategoriziedCash();
+		//calculateDailyVelocity();
+		// findUncategoriziedCash();
+		
+		System.out.println("17-------------");
+
+	
+	}
+
+	@PostConstruct
+	public void initialize() {
 		
 	}
 
@@ -568,7 +620,6 @@ public class AnalyticsBean implements Serializable {
 		this.cs = cs;
 	}
 
-
 	public double getGrandTotal() {
 		return grandTotal;
 	}
@@ -751,7 +802,7 @@ public class AnalyticsBean implements Serializable {
 
 	public void setCarMaintenanceGoalDiff(double carMaintenanceGoalDiff) {
 		this.carMaintenanceGoalDiff = carMaintenanceGoalDiff;
-	}	
+	}
 
 	public String getEstimateIndicator() {
 		return estimateIndicator;
@@ -760,7 +811,6 @@ public class AnalyticsBean implements Serializable {
 	public void setEstimateIndicator(String estimateIndicator) {
 		this.estimateIndicator = estimateIndicator;
 	}
-	
 
 	public String getDailyIndicator() {
 		return dailyIndicator;
@@ -777,7 +827,7 @@ public class AnalyticsBean implements Serializable {
 	public void setEstimateGoalDiff(double estimateGoalDiff) {
 		this.estimateGoalDiff = estimateGoalDiff;
 	}
-	
+
 	public double getDailyVelocityDiff() {
 		return dailyVelocityDiff;
 	}
@@ -787,8 +837,8 @@ public class AnalyticsBean implements Serializable {
 	}
 
 	private void createTrendsChart() {
-		sumByMonthEntries = client.getCashEntriesSumByMonth();
-		sumByMonthByCategoryEntries = client.getCashEntriesSumByMonthByCategory();
+		//sumByMonthEntries = client.getSumByMonth();
+		//sumByMonthByCategoryEntries = client.getSumByMonthByCategory();
 		trendsChart = new LineChartModel();
 		trendsChart.setLegendPosition("se");
 		Axis ya = trendsChart.getAxis(AxisType.Y);
@@ -808,7 +858,7 @@ public class AnalyticsBean implements Serializable {
 		String month = "";
 		String yAxis = "";
 
-		estimateEntries = client.getEstimateEntries();
+		//estimateEntries = client.getEstimateEntries();
 
 		double ys = 0.0;
 		for (CashEntry e : sumByMonthEntries)
@@ -819,7 +869,7 @@ public class AnalyticsBean implements Serializable {
 		for (CashEntry e : sumByMonthEntries)
 			if (Integer.parseInt(new SimpleDateFormat("yyyy").format(e.getActualdate())) <= year - 2)
 				pys += e.getAmount();
-		
+
 		yAxis = "Year Start";
 		estimate.set(yAxis, ys);
 		sm = ys;
@@ -931,107 +981,105 @@ public class AnalyticsBean implements Serializable {
 	private void calculateEntertainmentGoal() {
 		double t = 0.00;
 		for (CashEntry e : sumByMonthByCategoryEntries)
-			if ((e.getCategoryEntry().getName().contains("Entertainment")) && (Integer.parseInt(new SimpleDateFormat("yyyy").format(new Date())) == Integer.parseInt(new SimpleDateFormat("yyyy").format(e.getActualdate()))))
-				t+=e.getAmount();
+			if ((e.getCategoryEntry().getName().contains("Entertainment"))
+					&& (Integer.parseInt(new SimpleDateFormat("yyyy").format(new Date())) == Integer
+							.parseInt(new SimpleDateFormat("yyyy").format(e.getActualdate()))))
+				t += e.getAmount();
 		entertainmentGoalDiff = t - entertainmentGoal;
 		if (entertainmentGoalDiff >= 0)
 			entertainmentIndicator = "up";
 		else
 			entertainmentIndicator = "down";
-	}	
-	
+	}
+
 	private void calculateVacationGoal() {
 		double t = 0.00;
 		for (CashEntry e : sumByMonthByCategoryEntries)
-			if ((e.getCategoryEntry().getName().contains("Vacation")) && (Integer.parseInt(new SimpleDateFormat("yyyy").format(new Date())) == Integer.parseInt(new SimpleDateFormat("yyyy").format(e.getActualdate()))))
-				t+=e.getAmount();
+			if ((e.getCategoryEntry().getName().contains("Vacation"))
+					&& (Integer.parseInt(new SimpleDateFormat("yyyy").format(new Date())) == Integer
+							.parseInt(new SimpleDateFormat("yyyy").format(e.getActualdate()))))
+				t += e.getAmount();
 		vacationGoalDiff = t - vacationGoal;
 		if (vacationGoalDiff >= 0)
 			vacationIndicator = "up";
 		else
 			vacationIndicator = "down";
-	}	
-	
+	}
+
 	private void calculateSnacksGoal() {
 		double t = 0.00;
 		for (CashEntry e : sumByMonthByCategoryEntries)
-			if ((e.getCategoryEntry().getName().contains("Snacks")) && (Integer.parseInt(new SimpleDateFormat("yyyy").format(new Date())) == Integer.parseInt(new SimpleDateFormat("yyyy").format(e.getActualdate()))))
-				t+=e.getAmount();
+			if ((e.getCategoryEntry().getName().contains("Snacks"))
+					&& (Integer.parseInt(new SimpleDateFormat("yyyy").format(new Date())) == Integer
+							.parseInt(new SimpleDateFormat("yyyy").format(e.getActualdate()))))
+				t += e.getAmount();
 		snacksGoalDiff = t - snacksGoal;
 		if (snacksGoalDiff >= 0)
 			snacksIndicator = "up";
 		else
 			snacksIndicator = "down";
-	}	
-	
+	}
+
 	private void calculateFoodGoal() {
 		double t = 0.00;
 		for (CashEntry e : sumByMonthByCategoryEntries)
-			if ((e.getCategoryEntry().getName().contains("Food")) && (Integer.parseInt(new SimpleDateFormat("yyyy").format(new Date())) == Integer.parseInt(new SimpleDateFormat("yyyy").format(e.getActualdate()))))
-				t+=e.getAmount();
+			if ((e.getCategoryEntry().getName().contains("Food"))
+					&& (Integer.parseInt(new SimpleDateFormat("yyyy").format(new Date())) == Integer
+							.parseInt(new SimpleDateFormat("yyyy").format(e.getActualdate()))))
+				t += e.getAmount();
 		foodGoalDiff = t - foodGoal;
 		if (foodGoalDiff >= 0)
 			foodIndicator = "up";
 		else
 			foodIndicator = "down";
 	}
-	
+
 	private void calculateHorseCareGoal() {
 		double t = 0.00;
 		for (CashEntry e : sumByMonthByCategoryEntries)
-			if ((e.getCategoryEntry().getName().contains("Horse Care")) && (Integer.parseInt(new SimpleDateFormat("yyyy").format(new Date())) == Integer.parseInt(new SimpleDateFormat("yyyy").format(e.getActualdate()))))
-				t+=e.getAmount();
+			if ((e.getCategoryEntry().getName().contains("Horse Care"))
+					&& (Integer.parseInt(new SimpleDateFormat("yyyy").format(new Date())) == Integer
+							.parseInt(new SimpleDateFormat("yyyy").format(e.getActualdate()))))
+				t += e.getAmount();
 		horseCareGoalDiff = t - horseCareGoal;
 		if (horseCareGoalDiff >= 0)
 			horseCareIndicator = "up";
 		else
 			horseCareIndicator = "down";
 	}
-	
+
 	private void calculateCarMaintenanceGoal() {
 		double t = 0.00;
 		for (CashEntry e : sumByMonthByCategoryEntries)
-			if ((e.getCategoryEntry().getName().contains("Car Maintenance")) && (Integer.parseInt(new SimpleDateFormat("yyyy").format(new Date())) == Integer.parseInt(new SimpleDateFormat("yyyy").format(e.getActualdate()))))
-				t+=e.getAmount();
+			if ((e.getCategoryEntry().getName().contains("Car Maintenance"))
+					&& (Integer.parseInt(new SimpleDateFormat("yyyy").format(new Date())) == Integer
+							.parseInt(new SimpleDateFormat("yyyy").format(e.getActualdate()))))
+				t += e.getAmount();
 		carMaintenanceGoalDiff = t - carMaintenanceGoal;
 		if (carMaintenanceGoalDiff >= 0)
 			carMaintenanceIndicator = "up";
 		else
 			carMaintenanceIndicator = "down";
 	}
-	
-	private void calculateDailyVelocity() {
-		double t = 0.00;
-		String strToday = new SimpleDateFormat("mmddyyyy").format(new Date());
-		for (CashEntry e : sumByMonthByCategoryEntries)
-			if (strToday == new SimpleDateFormat("mmddyyyy").format(e.getActualdate()))
-				t+=e.getAmount();
-		if (t >= 0)
-			dailyIndicator = "up";
-		else
-			dailyIndicator = "down";
-	}
-	
-	private double calculateMonthlyRetained(int mnt) {
-		double velocity = 0.0;
-		int yy = year;
-		if (mnt==0) {
-			yy=yy-1;
-			mnt=12;
-		}
-		for (CashEntry e : sumByMonthEntries)
-			if ((Integer.parseInt(new SimpleDateFormat("MM").format(e.getActualdate())) == mnt) && (Integer.parseInt(new SimpleDateFormat("yyyy").format(e.getActualdate())) == yy))
-				velocity = e.getAmount();
-		return velocity;
+
+//	private void calculateDailyVelocity() {
+//		double t = 0.00;
+//		String strToday = new SimpleDateFormat("mmddyyyy").format(new Date());
+//		for (CashEntry e : sumByMonthByCategoryEntries)
+//			if (strToday == new SimpleDateFormat("mmddyyyy").format(e.getActualdate()))
+//				t += e.getAmount();
+//		if (t >= 0)
+//			dailyIndicator = "up";
+//		else
+//			dailyIndicator = "down";
+//	}
+
+	private double calculateMonthlyRetained(int year,int month) {
+		return client.getVelocityByMonth(year,month);
 	}
 
 	private double calculateYearlyVelocity(int year) {
-		double velocity = 0.0;
-		for (CashEntry e : sumByMonthByCategoryEntries)
-			if ((!e.getCategoryEntry().getName().contains("Carry Over")
-					&& (Integer.parseInt(new SimpleDateFormat("yyyy").format(e.getActualdate())) == year)))
-				velocity += e.getAmount();
-		return velocity;
+		return client.getVelocityByYear(year);
 	}
 
 	private double calculateYearlyVelocity() {
@@ -1059,55 +1107,33 @@ public class AnalyticsBean implements Serializable {
 	}
 
 	private double calculateYearlyRetained(int year) {
-		double result = 0.0;
-		List<String> years = new ArrayList<String>();
-		for (CashEntry c : sumByMonthEntries) {
-			int yr = Integer.parseInt(new SimpleDateFormat("yyyy").format(c.getActualdate()));
-			if ((yr <= year) && (!years.contains(new SimpleDateFormat("yyyy").format(c.getActualdate())))) {
-				result += client.getCashEntriesSumByYear(yr).getAmount();
-				years.add(new SimpleDateFormat("yyyy").format(c.getActualdate()));
-			}
-		}
-		return result;
+		return client.getRetainedByYear(year);
 	}
 
 	private double calculateYearlySpent(int year) {
-		double result = 0.0;
-		for (CashEntry c : cashEntries) {
-			if ((Integer.parseInt(new SimpleDateFormat("yyyy").format(c.getActualdate())) == year)
-					&& (c.getAmount() < 0) && (!c.getCategoryEntry().getName().equalsIgnoreCase("Carry Over")
-							&& (!c.getCategoryEntry().getName().equalsIgnoreCase("Transfer"))))
-				result += c.getAmount();
-		}
-		return result;
+		return client.getSpentByYear(year);
 	}
 
 	private double calculateYearlyGained(int year) {
-		double result = 0.0;
-		for (CashEntry c : cashEntries) {
-			if ((Integer.parseInt(new SimpleDateFormat("yyyy").format(c.getActualdate())) == year)
-					&& (c.getAmount() > 0) && (!c.getCategoryEntry().getName().equalsIgnoreCase("Carry Over")
-							&& (!c.getCategoryEntry().getName().equalsIgnoreCase("Transfer"))))
-				result += c.getAmount();
-		}
-		return result;
+		return client.getGainedByYear(year);
 	}
-	
+
 	private void calculateEstimateGoal() {
-		int ccmonth = Integer.parseInt(new SimpleDateFormat("MM").format(new Date()));
-		estimateGoalDiff = calculateMonthlyRetained(ccmonth);
+		int month = Integer.parseInt(new SimpleDateFormat("MM").format(new Date()));
+		int year = Integer.parseInt(new SimpleDateFormat("yyyy").format(new Date()));
+		estimateGoalDiff = calculateMonthlyRetained(year,month);
 		for (CashEntry c : estimateEntries)
-			if ((ccmonth)==c.getId())
-				estimateGoalDiff=estimateGoalDiff-c.getAmount();
+			if ((month) == c.getId())
+				estimateGoalDiff = estimateGoalDiff - c.getAmount();
 		if (estimateGoalDiff >= 0)
 			estimateIndicator = "up";
 		else
 			estimateIndicator = "down";
 	}
 
-	private double findUncategoriziedCash() {
+	/*private double findUncategoriziedCash() {
 		double result = 0.0;
-		List<CategoryEntry> categoryEntries = client.getCategoryEntries();
+		List<CategoryEntry> categoryEntries = AMClient.getCategoryEntries();
 		boolean found = false;
 		for (CashEntry c : cashEntries) {
 			found = false;
@@ -1118,6 +1144,6 @@ public class AnalyticsBean implements Serializable {
 				System.out.println("CATEGORY " + c.getCategoryEntry().getId() + " NOT FOUND");
 		}
 		return result;
-	}
+	}*/
 
 }

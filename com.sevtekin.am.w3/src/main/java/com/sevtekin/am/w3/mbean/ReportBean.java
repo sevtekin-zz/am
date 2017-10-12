@@ -47,7 +47,7 @@ public class ReportBean implements Serializable {
 
 	public ReportBean() {
 		estimateEntries = client.getEstimateEntries();
-		sumByMonthEntries = client.getCashEntriesSumByMonth();
+		sumByMonthEntries = client.getSumByMonth();
 		Date today = new Date();
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(today);
@@ -133,8 +133,8 @@ public class ReportBean implements Serializable {
 	}
 
 	public void createCharts() {
-		sumByMonthEntries = client.getCashEntriesSumByMonth();
-		sumByMonthByCategoryEntries = client.getCashEntriesSumByMonthByCategory();
+		sumByMonthEntries = client.getSumByMonth();
+		sumByMonthByCategoryEntries = client.getSumByMonthByCategory();
 		createSumByMonthChart();
 		createTrendChart();
 		createSumByMonthByCategoryChart();

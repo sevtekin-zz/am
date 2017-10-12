@@ -29,7 +29,7 @@ public class CashFlowBean implements Serializable {
 	Integer progress;
 
 	public CashFlowBean() {
-		cashEntries = client.getCashEntriesSumByMonthByCategory();
+		cashEntries = client.getSumByMonthByCategory();
 		categories = new ArrayList<String>();
 		dates = new ArrayList<String>();
 		int i = 0;
@@ -44,15 +44,12 @@ public class CashFlowBean implements Serializable {
 		String cyear = new SimpleDateFormat("yyyy").format(calendar.getTime());
 		Date afterDate = null;
 		try {
-			afterDate = new SimpleDateFormat("yyyy/MM/dd").parse(cyear
-					+ "/01/01");
+			afterDate = new SimpleDateFormat("yyyy/MM/dd").parse(cyear + "/01/01");
 		} catch (ParseException e1) {
 			e1.printStackTrace();
 		}
-		double psum = 0.0;
-		for (CashEntry e : cashEntries)
-			if (afterDate.after(e.getActualdate()))
-				psum += e.getAmount();
+		double psum = client.getSumUpTo(cyear + "-01-01");
+		System.out.println("PSUM " + psum);
 
 		List<CategoryEntry> categoryEntries = client.getCategoryEntries();
 		CashEntry carryOverCash = new CashEntry();
@@ -63,15 +60,12 @@ public class CashFlowBean implements Serializable {
 				carryOverCash.setCategoryEntry(c);
 		cashEntries.add(carryOverCash);
 		for (CashEntry e : cashEntries) {
-			if (afterDate.after(e.getActualdate())) {
-			} else {
+			if (!afterDate.after(e.getActualdate())) {
 				if (!categories.contains(e.getCategoryEntry().getName()))
 					categories.add(e.getCategoryEntry().getName());
 				i = categories.indexOf(e.getCategoryEntry().getName());
-				String mnth = new SimpleDateFormat("MM").format(e
-						.getActualdate());
-				String yr = new SimpleDateFormat("yy")
-						.format(e.getActualdate());
+				String mnth = new SimpleDateFormat("MM").format(e.getActualdate());
+				String yr = new SimpleDateFormat("yy").format(e.getActualdate());
 				String dt = mnth + "'" + yr;
 				if (!dates.contains(dt))
 					dates.add(dt);
@@ -91,8 +85,7 @@ public class CashFlowBean implements Serializable {
 			}
 			subTotals[i] = df.format(tmp);
 			if (i > 0) {
-				double prev = Double.parseDouble(runningTotals[i - 1].replace(
-						"$", ""));
+				double prev = Double.parseDouble(runningTotals[i - 1].replace("$", ""));
 				runningTotals[i] = df.format(tmp + prev);
 			} else {
 				runningTotals[i] = df.format(tmp);

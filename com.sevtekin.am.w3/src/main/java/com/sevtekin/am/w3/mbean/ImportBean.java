@@ -6,7 +6,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Serializable;
+import java.net.URLEncoder;
 import java.text.DateFormat;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -169,7 +171,7 @@ public class ImportBean implements Serializable {
 	}
 
 	public void importSelected() {
-		client.takeSnapshot("sn");
+		// client.takeSnapshot("sn");
 		FacesMessage message = new FacesMessage("Successful", "Snapshot taken before import.");
 		FacesContext.getCurrentInstance().addMessage(null, message);
 		for (CashEntry e : selectedEntries) {
@@ -241,6 +243,7 @@ public class ImportBean implements Serializable {
 	}
 
 	public void uploadFiles(FileUploadEvent event) {
+		System.out.println("IMPORT 1 --------");
 		importEntries = new ArrayList<CashEntry>();
 		client = new AMClient();
 		try {
@@ -262,12 +265,13 @@ public class ImportBean implements Serializable {
 				ownerName = "CHASE SAVINGS";
 			if (fileName.startsWith("Chase4775"))
 				ownerName = "CHASE CREDIT - A";
-			List<OwnerEntry> owners = new AMClient().getOwnerEntries();
+			List<OwnerEntry> owners = ownerEntries;
 			int ownerId = 0;
 			for (OwnerEntry o : owners)
 				if (o.getName().equalsIgnoreCase(ownerName))
 					ownerId = o.getId();
 			String line = "";
+			System.out.println("IMPORT 2 --------");
 			try {
 				InputStream is = event.getFile().getInputstream();
 				BufferedReader br = new BufferedReader(new InputStreamReader(is));
@@ -284,7 +288,8 @@ public class ImportBean implements Serializable {
 						strDate = fields[0];
 						if (fileName.toLowerCase().startsWith("chase4775")) {
 							strDate = fields[1].replace("\"", "");
-							//System.out.println(fields[1] + " | " + fields[2] + " | " + fields[3] + " | " + fields[4]);
+							// System.out.println(fields[1] + " | " + fields[2] + " | " + fields[3] + " | "
+							// + fields[4]);
 							strDesc = fields[3].replace("\"", "");
 							strAmount = fields[4].replace("\"", "");
 						} else if (fileName.toLowerCase().startsWith("chase")) {
@@ -297,6 +302,7 @@ public class ImportBean implements Serializable {
 							if (fields[4].startsWith("\""))
 								strDesc = fields[4].replace("\"", "");
 						}
+						System.out.println("IMPORT 3 --------");
 						CashEntry entry = new CashEntry();
 						entry.setId(i++);
 						Date date = new Date();
@@ -304,7 +310,7 @@ public class ImportBean implements Serializable {
 						if (fileName.toLowerCase().startsWith("chase"))
 							sdf = new SimpleDateFormat("MM/dd/yy");
 						date = sdf.parse(strDate);
-						//System.out.println("----" + date);
+						// System.out.println("----" + date);
 						entry.setActualdate(date);
 						entry.setDuedate(entry.getActualdate());
 						entry.setDescription(strDesc.replace("'", ""));
@@ -312,7 +318,9 @@ public class ImportBean implements Serializable {
 						if (!strAmount.equals(""))
 							charge = Double.parseDouble(strAmount);
 						entry.setAmount(charge);
+						System.out.println("IMPORT 4 --------");
 						CategoryEntry categoryEntry = suggestCategory(entry.getDescription());
+						System.out.println("IMPORT 5 --------");
 						entry.setCategoryEntry(categoryEntry);
 						OwnerEntry ownerEntry = new OwnerEntry();
 						ownerEntry.setId(ownerId);
@@ -322,35 +330,56 @@ public class ImportBean implements Serializable {
 					}
 				}
 
+				System.out.println("IMPORT 6 --------");
 				DateFormat sdf = new SimpleDateFormat("yyyyMMdd");
 				Calendar cal = Calendar.getInstance();
 				String today = sdf.format(cal.getTime());
 				cal.add(Calendar.MONTH, -4);
 				String threeMonthsAgo = sdf.format(cal.getTime());
-				String filter = " description like " + "" + " and actualdate>='" + threeMonthsAgo
-						+ "' and actualdate<='" + today + "'";
+				String filter = " actualdate>='" + threeMonthsAgo + "' and actualdate<='" + today + "'";
+				if (filter != "") {
+					filter = filter.trim();
+					filter = URLEncoder.encode(filter, "UTF-8");
+					filter = filter.replace("+", "%20");
+				}
 				allEntries = client.getCashEntries(filter);
-				// System.out.println("COUNT " + allEntries.size());
+				System.out.println("FILTER " + filter);
+				System.out.println("IMPORT 7 --------");
+				System.out.println("COUNT " + allEntries.size());
 				alreadyImported = new ArrayList<CashEntry>();
 				for (CashEntry e : allEntries)
 					for (CashEntry c : importEntries) {
 						int d1 = Integer.parseInt(sdf.format(e.getActualdate()));
 						int d2 = Integer.parseInt(sdf.format(c.getActualdate()));
-						double a1 = e.getAmount();
+
+						// System.out.println("DATES " + d1 + " | " + d2);
+						double a1 = Double.parseDouble(String.format("%.2f", e.getAmount()));
 						double a2 = c.getAmount();
+						 System.out.println("AMOUNTS " + a1 + " | " + a2);
 						int o1 = e.getOwnerEntry().getId();
 						int o2 = c.getOwnerEntry().getId();
+						// System.out.println("OWNERS " + o1 + " | " + o2);
 						String ds1 = e.getDescription();
 						String ds2 = c.getDescription();
-						if ((d1 == d2) && (a1 == a2) && (o1 == o2) && (ds1.equalsIgnoreCase(ds2)))
+						// System.out.println("DESCRIPTIONS " + ds1 + " | " + ds2);
+						//System.out.println(d1 + " | " + a1 + " | " + o1 + " | " + ds1 + " <> " + d2 + " | " + a2 + " | "
+						//		+ o2 + " | " + ds2);
+						if ((d1 == d2) && (a1 == a2) && (o1 == o2) && (ds1.equalsIgnoreCase(ds2))) {
 							alreadyImported.add(c);
+							//System.out.println("MATCH");
+						} else {
+							//System.out.println("UNMATCH");
+						}
 						if ((c.getDescription().contains("Pending")) || (c.getDescription().contains("pending"))
 								|| (c.getDescription().contains("PENDING")))
 							alreadyImported.add(c);
 
 					}
-				for (CashEntry a : alreadyImported)
+				for (CashEntry a : alreadyImported) {
 					importEntries.remove(a);
+					System.out.println("ALREADY IMPORTED " + a.getAmount() + " | " + a.getActualdate() + " | "
+							+ a.getDescription());
+				}
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			} catch (IOException e) {

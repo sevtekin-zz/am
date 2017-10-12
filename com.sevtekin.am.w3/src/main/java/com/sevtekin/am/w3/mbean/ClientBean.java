@@ -38,7 +38,7 @@ public class ClientBean implements Serializable {
 	String equalsAmount = "";
 	String greaterAmount = "";
 	String lesserAmount = "";
-	String description= "";
+	String description = "";
 	Date equalsDueDate = null;
 	Date afterDueDate = null;
 	Date beforeDueDate = null;
@@ -46,7 +46,7 @@ public class ClientBean implements Serializable {
 	Date afterActualDate = null;
 	Date beforeActualDate = null;
 	Integer progress;
-	
+
 	public ClientBean() {
 		cashEntry = new CashEntry();
 		categoryEntry = new CategoryEntry();
@@ -92,7 +92,7 @@ public class ClientBean implements Serializable {
 	@PostConstruct
 	public void initialize() {
 	}
-	
+
 	public void resetFilters() {
 		equalsActualDate = null;
 		afterActualDate = null;
@@ -101,7 +101,7 @@ public class ClientBean implements Serializable {
 		afterDueDate = null;
 		beforeDueDate = null;
 		equalsAmount = null;
-		greaterAmount = null;		
+		greaterAmount = null;
 		lesserAmount = null;
 		categoryEntry.setName("SELECT");
 		categoryEntry.setId(0);
@@ -112,33 +112,30 @@ public class ClientBean implements Serializable {
 	}
 
 	public void refreshFromDBWithFilters() {
-		String filters = " description like " + description;
+		String filters = "description like '%" + description + "%'";
 		DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
 		try {
-			if (!(this.getEqualsAmount().equals(null)) && (!this.getEqualsAmount().equals("")) && (!this.getEqualsAmount().isEmpty()))
+			if (!(this.getEqualsAmount().equals(null)) && (!this.getEqualsAmount().equals(""))
+					&& (!this.getEqualsAmount().isEmpty()))
 				filters += " and amount=" + getEqualsAmount();
-			if (!(this.getGreaterAmount().equals(null)) && (!this.getGreaterAmount().equals("")) && (!this.getGreaterAmount().isEmpty()))
+			if (!(this.getGreaterAmount().equals(null)) && (!this.getGreaterAmount().equals(""))
+					&& (!this.getGreaterAmount().isEmpty()))
 				filters += " and amount>" + getGreaterAmount();
-			if (!(this.getLesserAmount().equals(null)) && (!this.getLesserAmount().equals("")) && (!this.getLesserAmount().isEmpty()))
+			if (!(this.getLesserAmount().equals(null)) && (!this.getLesserAmount().equals(""))
+					&& (!this.getLesserAmount().isEmpty()))
 				filters += " and amount<" + getLesserAmount();
 			if (getEqualsDueDate() != null)
-				filters += " and duedate='" + df.format(getEqualsDueDate())
-						+ "'";
+				filters += " and duedate='" + df.format(getEqualsDueDate()) + "'";
 			if (getBeforeDueDate() != null)
-				filters += " and duedate<='" + df.format(getBeforeDueDate())
-						+ "'";
+				filters += " and duedate<='" + df.format(getBeforeDueDate()) + "'";
 			if (getAfterDueDate() != null)
-				filters += " and duedate>='" + df.format(getAfterDueDate())
-						+ "'";
+				filters += " and duedate>='" + df.format(getAfterDueDate()) + "'";
 			if (getEqualsActualDate() != null)
-				filters += " and actualdate='"
-						+ df.format(getEqualsActualDate()) + "'";
+				filters += " and actualdate='" + df.format(getEqualsActualDate()) + "'";
 			if (getBeforeActualDate() != null)
-				filters += " and actualdate<='"
-						+ df.format(getBeforeActualDate()) + "'";
+				filters += " and actualdate<='" + df.format(getBeforeActualDate()) + "'";
 			if (getAfterActualDate() != null)
-				filters += " and actualdate>='"
-						+ df.format(getAfterActualDate()) + "'";
+				filters += " and actualdate>='" + df.format(getAfterActualDate()) + "'";
 			if (getCategoryEntry().getId() != 0)
 				filters += " and categoryid=" + getCategoryEntry().getId();
 			if (getOwnerEntry().getId() != 0)
@@ -148,18 +145,14 @@ public class ClientBean implements Serializable {
 				filters = URLEncoder.encode(filters, "UTF-8");
 				filters = filters.replace("+", "%20");
 				cashEntries = client.getCashEntries(filters);
-				System.out.println(new Timestamp(new Date().getTime())
-						+ " [AM W3] [INFO] DATA LOADED " + filters);
+				//System.out.println(new Timestamp(new Date().getTime()) + " [AM W3] [INFO] DATA LOADED " + filters);
 			} else {
 				cashEntries = client.getCashEntries();
 			}
 		} catch (Exception e) {
-			System.out.println(new Timestamp(new Date().getTime())
-					+ " [AM W3] [ERROR] " + e.getMessage());
-			FacesContext.getCurrentInstance().addMessage(
-					null,
-					new FacesMessage(FacesMessage.SEVERITY_ERROR, "ERROR", e
-							.toString()));
+			System.out.println(new Timestamp(new Date().getTime()) + " [AM W3] [ERROR] " + e.getMessage());
+			FacesContext.getCurrentInstance().addMessage(null,
+					new FacesMessage(FacesMessage.SEVERITY_ERROR, "ERROR", e.toString()));
 		} finally {
 			runningTotal = 0.0;
 		}
@@ -188,19 +181,16 @@ public class ClientBean implements Serializable {
 	public void setSelectedCashEntries(List<CashEntry> selectedCashEntries) {
 		this.selectedCashEntries = selectedCashEntries;
 	}
-	
+
 	public void setDescription(String description) {
 		this.description = description;
 	}
-	
 
 	// Progress
 
 	public String getDescription() {
 		return description;
 	}
-
-	
 
 	public Integer getProgress() {
 		if (progress == null)
@@ -220,53 +210,38 @@ public class ClientBean implements Serializable {
 	}
 
 	public void onComplete() {
-		System.out.println("COMPLETED!!!!!!!!");
-		FacesContext.getCurrentInstance().addMessage(
-				null,
-				new FacesMessage(FacesMessage.SEVERITY_INFO,
-						"PROGRESS COMPLETED", "DATA LOADED"));
+		FacesContext.getCurrentInstance().addMessage(null,
+				new FacesMessage(FacesMessage.SEVERITY_INFO, "PROGRESS COMPLETED", "DATA LOADED"));
 	}
 
 	public void deleteCashEntry() {
 		try {
 			for (CategoryEntry category : categoryEntries)
-				if (category.getName().equals(
-						cashEntry.getCategoryEntry().getName()))
+				if (category.getName().equals(cashEntry.getCategoryEntry().getName()))
 					cashEntry.setCategoryEntry(category);
 			for (OwnerEntry owner : ownerEntries)
 				if (owner.getName().equals(cashEntry.getOwnerEntry().getName()))
 					cashEntry.setOwnerEntry(owner);
-			System.out.println(new Timestamp(new Date().getTime())
-					+ " [AM W3][INFO] Delete requested for "
-					+ cashEntry.getId() + " - " + cashEntry.getAmount() + " - "
-					+ cashEntry.getDuedate() + " - "
-					+ cashEntry.getActualdate() + " - "
-					+ cashEntry.getCategoryEntry().getId() + " - "
-					+ cashEntry.getCategoryEntry().getName() + " - "
-					+ cashEntry.getOwnerEntry().getId() + " - "
+			System.out.println(new Timestamp(new Date().getTime()) + " [AM W3][INFO] Delete requested for "
+					+ cashEntry.getId() + " - " + cashEntry.getAmount() + " - " 
+					+ cashEntry.getActualdate() + " - " + cashEntry.getCategoryEntry().getId() + " - "
+					+ cashEntry.getCategoryEntry().getName() + " - " + cashEntry.getOwnerEntry().getId() + " - "
 					+ cashEntry.getOwnerEntry().getName());
-			client.deleteCashEntry(cashEntry.getId());
-			FacesContext.getCurrentInstance().addMessage(
-					null,
-					new FacesMessage(FacesMessage.SEVERITY_INFO,
-							"CASH ENTRY REMOVED", cashEntry.getId() + " - "
-									+ cashEntry.getAmount() + " - "
-									+ cashEntry.getDuedate() + " - "
-									+ cashEntry.getActualdate() + " - "
-									+ cashEntry.getCategoryEntry().getId()
-									+ " - "
-									+ cashEntry.getCategoryEntry().getName()
-									+ " - " + cashEntry.getOwnerEntry().getId()
-									+ " - "
-									+ cashEntry.getOwnerEntry().getName()));
-			cashEntries.remove(cashEntry);
+			AMClient.deleteCashEntry(cashEntry.getId());
+			
+			
+			FacesContext.getCurrentInstance().addMessage(null,
+					new FacesMessage(FacesMessage.SEVERITY_INFO, "CASH ENTRY REMOVED",
+							cashEntry.getId() + " - " + cashEntry.getAmount() + " - "
+									+ cashEntry.getActualdate() + " - " + cashEntry.getCategoryEntry().getId() + " - "
+									+ cashEntry.getCategoryEntry().getName() + " - " + cashEntry.getOwnerEntry().getId()
+									+ " - " + cashEntry.getOwnerEntry().getName()));
+			refreshFromDBWithFilters();
+			//cashEntries.remove(cashEntry);
 		} catch (Exception e) {
-			System.out.println(new Timestamp(new Date().getTime())
-					+ " [AM W3] ERROR: " + e.getMessage());
-			FacesContext.getCurrentInstance().addMessage(
-					null,
-					new FacesMessage(FacesMessage.SEVERITY_ERROR, "ERROR", e
-							.toString()));
+			System.out.println(new Timestamp(new Date().getTime()) + " [AM W3] [ERROR] " + e.getMessage());
+			FacesContext.getCurrentInstance().addMessage(null,
+					new FacesMessage(FacesMessage.SEVERITY_ERROR, "ERROR", e.toString()));
 		} finally {
 			runningTotal = 0.0;
 		}
@@ -275,44 +250,29 @@ public class ClientBean implements Serializable {
 	public void addCashEntry() {
 		try {
 			for (CategoryEntry category : categoryEntries)
-				if (category.getName().equals(
-						cashEntry.getCategoryEntry().getName()))
+				if (category.getName().equals(cashEntry.getCategoryEntry().getName()))
 					cashEntry.setCategoryEntry(category);
 			for (OwnerEntry owner : ownerEntries)
 				if (owner.getName().equals(cashEntry.getOwnerEntry().getName()))
 					cashEntry.setOwnerEntry(owner);
-			System.out.println(new Timestamp(new Date().getTime())
-					+ " [AM W3][INFO] Add requested for " + cashEntry.getId()
-					+ " - " + cashEntry.getAmount() + " - "
-					+ cashEntry.getDuedate() + " - "
-					+ cashEntry.getActualdate() + " - "
-					+ cashEntry.getCategoryEntry().getId() + " - "
-					+ cashEntry.getCategoryEntry().getName() + " - "
-					+ cashEntry.getOwnerEntry().getId() + " - "
+			System.out.println(new Timestamp(new Date().getTime()) + " [AM W3][INFO] Add requested for "
+					+ cashEntry.getId() + " - " + cashEntry.getAmount() + " - " + cashEntry.getDuedate() + " - "
+					+ cashEntry.getActualdate() + " - " + cashEntry.getCategoryEntry().getId() + " - "
+					+ cashEntry.getCategoryEntry().getName() + " - " + cashEntry.getOwnerEntry().getId() + " - "
 					+ cashEntry.getOwnerEntry().getName());
 			cashEntry.setDuedate(cashEntry.getActualdate());
 			client.addCashEntry(cashEntry);
 			refreshFromDBWithFilters();
-			FacesContext.getCurrentInstance().addMessage(
-					null,
-					new FacesMessage(FacesMessage.SEVERITY_INFO,
-							"CASH ENTRY ADDED", cashEntry.getId() + " - "
-									+ cashEntry.getAmount() + " - "
-									+ cashEntry.getDuedate() + " - "
-									+ cashEntry.getActualdate() + " - "
-									+ cashEntry.getCategoryEntry().getId()
-									+ " - "
-									+ cashEntry.getCategoryEntry().getName()
-									+ " - " + cashEntry.getOwnerEntry().getId()
-									+ " - "
-									+ cashEntry.getOwnerEntry().getName()));
+			FacesContext.getCurrentInstance().addMessage(null,
+					new FacesMessage(FacesMessage.SEVERITY_INFO, "CASH ENTRY ADDED",
+							cashEntry.getId() + " - " + cashEntry.getAmount() + " - " + cashEntry.getDuedate() + " - "
+									+ cashEntry.getActualdate() + " - " + cashEntry.getCategoryEntry().getId() + " - "
+									+ cashEntry.getCategoryEntry().getName() + " - " + cashEntry.getOwnerEntry().getId()
+									+ " - " + cashEntry.getOwnerEntry().getName()));
 		} catch (Exception e) {
-			System.out.println(new Timestamp(new Date().getTime())
-					+ " [AM W3] [ERROR] " + e.getMessage());
-			FacesContext.getCurrentInstance().addMessage(
-					null,
-					new FacesMessage(FacesMessage.SEVERITY_ERROR, "ERROR", e
-							.toString()));
+			System.out.println(new Timestamp(new Date().getTime()) + " [AM W3] [ERROR] " + e.getMessage());
+			FacesContext.getCurrentInstance().addMessage(null,
+					new FacesMessage(FacesMessage.SEVERITY_ERROR, "ERROR", e.toString()));
 		} finally {
 			runningTotal = 0.0;
 		}
@@ -322,39 +282,27 @@ public class ClientBean implements Serializable {
 		try {
 			CashEntry entry = (CashEntry) event.getObject();
 			for (CategoryEntry category : categoryEntries)
-				if (category.getName().equals(
-						entry.getCategoryEntry().getName()))
+				if (category.getName().equals(entry.getCategoryEntry().getName()))
 					entry.setCategoryEntry(category);
 			for (OwnerEntry owner : ownerEntries)
 				if (owner.getName().equals(entry.getOwnerEntry().getName()))
 					entry.setOwnerEntry(owner);
-			System.out.println(new Timestamp(new Date().getTime())
-					+ " [AM W3][INFO] Save requested for " + entry.getId()
-					+ " - " + entry.getAmount() + " - " + entry.getDuedate()
-					+ " - " + entry.getActualdate() + " - "
-					+ entry.getCategoryEntry().getId() + " - "
-					+ entry.getCategoryEntry().getName() + " - "
-					+ entry.getOwnerEntry().getId() + " - "
-					+ entry.getOwnerEntry().getName());
+			System.out
+					.println(new Timestamp(new Date().getTime()) + " [AM W3][INFO] Save requested for " + entry.getId()
+							+ " - " + entry.getAmount() + " - " + entry.getDuedate() + " - " + entry.getActualdate()
+							+ " - " + entry.getCategoryEntry().getId() + " - " + entry.getCategoryEntry().getName()
+							+ " - " + entry.getOwnerEntry().getId() + " - " + entry.getOwnerEntry().getName());
 			client.updateCashEntry(entry);
-			FacesContext.getCurrentInstance().addMessage(
-					null,
-					new FacesMessage(FacesMessage.SEVERITY_INFO,
-							"CASH ENTRY SAVED", entry.getId() + " - "
-									+ entry.getAmount() + " - "
-									+ entry.getDuedate() + " - "
-									+ entry.getActualdate() + " - "
-									+ entry.getCategoryEntry().getId() + " - "
-									+ entry.getCategoryEntry().getName()
-									+ " - " + entry.getOwnerEntry().getId()
-									+ " - " + entry.getOwnerEntry().getName()));
+			FacesContext.getCurrentInstance().addMessage(null,
+					new FacesMessage(FacesMessage.SEVERITY_INFO, "CASH ENTRY SAVED",
+							entry.getId() + " - " + entry.getAmount() + " - " + entry.getDuedate() + " - "
+									+ entry.getActualdate() + " - " + entry.getCategoryEntry().getId() + " - "
+									+ entry.getCategoryEntry().getName() + " - " + entry.getOwnerEntry().getId() + " - "
+									+ entry.getOwnerEntry().getName()));
 		} catch (Exception e) {
-			System.out.println(new Timestamp(new Date().getTime())
-					+ " [AM W3] [ERROR] " + e.getMessage());
-			FacesContext.getCurrentInstance().addMessage(
-					null,
-					new FacesMessage(FacesMessage.SEVERITY_ERROR, "ERROR", e
-							.toString()));
+			System.out.println(new Timestamp(new Date().getTime()) + " [AM W3] [ERROR] " + e.getMessage());
+			FacesContext.getCurrentInstance().addMessage(null,
+					new FacesMessage(FacesMessage.SEVERITY_ERROR, "ERROR", e.toString()));
 		} finally {
 			runningTotal = 0.0;
 		}
@@ -493,70 +441,70 @@ public class ClientBean implements Serializable {
 		this.ownerEntries = ownerEntries;
 	}
 
-//	public void saveOwnerEntry(RowEditEvent event) {
-//		try {
-//			OwnerEntry entry = (OwnerEntry) event.getObject();
-//			System.out.println(new Timestamp(new Date().getTime())
-//					+ " [AM W3][INFO] Save requested for " + entry.getId()
-//					+ " - " + entry.getName());
-//			client.updateOwnerEntry(entry);
-//			initialize();
-//			FacesContext.getCurrentInstance().addMessage(
-//					null,
-//					new FacesMessage(FacesMessage.SEVERITY_INFO,
-//							"OWNER ENTRY SAVED", entry.getId() + " - "
-//									+ entry.getName()));
-//		} catch (Exception e) {
-//			System.out.println(new Timestamp(new Date().getTime())
-//					+ " [AM W3] [ERROR] " + e.getMessage());
-//			FacesContext.getCurrentInstance().addMessage(
-//					null,
-//					new FacesMessage(FacesMessage.SEVERITY_ERROR, "ERROR", e
-//							.toString()));
-//		}
-//	}
-//
-//	public void deleteOwnerEntry() {
-//		try {
-//			System.out.println(new Timestamp(new Date().getTime())
-//					+ " [AM W3][INFO] Delete requested for "
-//					+ ownerEntry.getId() + " - " + ownerEntry.getName());
-//			client.deleteOwnerEntry(ownerEntry.getId());
-//			FacesContext.getCurrentInstance().addMessage(
-//					null,
-//					new FacesMessage(FacesMessage.SEVERITY_INFO,
-//							"OWNER ENTRY REMOVED", ownerEntry.getId() + " - "
-//									+ ownerEntry.getName()));
-//			ownerEntries.remove(ownerEntry);
-//		} catch (Exception e) {
-//			System.out.println(new Timestamp(new Date().getTime())
-//					+ " [AM W3] ERROR: " + e.getMessage());
-//			FacesContext.getCurrentInstance().addMessage(
-//					null,
-//					new FacesMessage(FacesMessage.SEVERITY_ERROR, "ERROR", e
-//							.toString()));
-//		}
-//	}
-//
-//	public void addOwnerEntry() {
-//		try {
-//			System.out.println(new Timestamp(new Date().getTime())
-//					+ " [AM W3][INFO] Add requested for " + ownerEntry.getId()
-//					+ " - " + ownerEntry.getName());
-//			client.addOwnerEntry(ownerEntry);
-//			initialize();
-//			FacesContext.getCurrentInstance().addMessage(
-//					null,
-//					new FacesMessage(FacesMessage.SEVERITY_INFO,
-//							"OWNER ENTRY ADDED", ownerEntry.getId() + " - "
-//									+ ownerEntry.getName()));
-//		} catch (Exception e) {
-//			System.out.println(new Timestamp(new Date().getTime())
-//					+ " [AM W3] [ERROR] " + e.getMessage());
-//			FacesContext.getCurrentInstance().addMessage(
-//					null,
-//					new FacesMessage(FacesMessage.SEVERITY_ERROR, "ERROR", e
-//							.toString()));
-//		}
-//	}
+	// public void saveOwnerEntry(RowEditEvent event) {
+	// try {
+	// OwnerEntry entry = (OwnerEntry) event.getObject();
+	// System.out.println(new Timestamp(new Date().getTime())
+	// + " [AM W3][INFO] Save requested for " + entry.getId()
+	// + " - " + entry.getName());
+	// client.updateOwnerEntry(entry);
+	// initialize();
+	// FacesContext.getCurrentInstance().addMessage(
+	// null,
+	// new FacesMessage(FacesMessage.SEVERITY_INFO,
+	// "OWNER ENTRY SAVED", entry.getId() + " - "
+	// + entry.getName()));
+	// } catch (Exception e) {
+	// System.out.println(new Timestamp(new Date().getTime())
+	// + " [AM W3] [ERROR] " + e.getMessage());
+	// FacesContext.getCurrentInstance().addMessage(
+	// null,
+	// new FacesMessage(FacesMessage.SEVERITY_ERROR, "ERROR", e
+	// .toString()));
+	// }
+	// }
+	//
+	// public void deleteOwnerEntry() {
+	// try {
+	// System.out.println(new Timestamp(new Date().getTime())
+	// + " [AM W3][INFO] Delete requested for "
+	// + ownerEntry.getId() + " - " + ownerEntry.getName());
+	// client.deleteOwnerEntry(ownerEntry.getId());
+	// FacesContext.getCurrentInstance().addMessage(
+	// null,
+	// new FacesMessage(FacesMessage.SEVERITY_INFO,
+	// "OWNER ENTRY REMOVED", ownerEntry.getId() + " - "
+	// + ownerEntry.getName()));
+	// ownerEntries.remove(ownerEntry);
+	// } catch (Exception e) {
+	// System.out.println(new Timestamp(new Date().getTime())
+	// + " [AM W3] ERROR: " + e.getMessage());
+	// FacesContext.getCurrentInstance().addMessage(
+	// null,
+	// new FacesMessage(FacesMessage.SEVERITY_ERROR, "ERROR", e
+	// .toString()));
+	// }
+	// }
+	//
+	// public void addOwnerEntry() {
+	// try {
+	// System.out.println(new Timestamp(new Date().getTime())
+	// + " [AM W3][INFO] Add requested for " + ownerEntry.getId()
+	// + " - " + ownerEntry.getName());
+	// client.addOwnerEntry(ownerEntry);
+	// initialize();
+	// FacesContext.getCurrentInstance().addMessage(
+	// null,
+	// new FacesMessage(FacesMessage.SEVERITY_INFO,
+	// "OWNER ENTRY ADDED", ownerEntry.getId() + " - "
+	// + ownerEntry.getName()));
+	// } catch (Exception e) {
+	// System.out.println(new Timestamp(new Date().getTime())
+	// + " [AM W3] [ERROR] " + e.getMessage());
+	// FacesContext.getCurrentInstance().addMessage(
+	// null,
+	// new FacesMessage(FacesMessage.SEVERITY_ERROR, "ERROR", e
+	// .toString()));
+	// }
+	// }
 }

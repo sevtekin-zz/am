@@ -82,9 +82,9 @@ public class TestBean implements Serializable {
 	private LineChartModel initLinearModel() {
 		LineChartModel model = new LineChartModel();
 
-		sumByMonthEntries = client.getCashEntriesSumByMonth();
+		sumByMonthEntries = client.getSumByMonth();
 		sumByMonthByCategoryEntries = client
-				.getCashEntriesSumByMonthByCategory();
+				.getSumByMonthByCategory();
 
 		Calendar calendar = Calendar.getInstance();
 		int year = calendar.get(Calendar.YEAR);

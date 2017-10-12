@@ -1,0 +1,53 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui">
+<h:head>
+</h:head>
+<h:body>
+	<h:form id="form" prependId="false">
+		<p:menubar
+			style="border: 1px solid gray;background-size: 100%;background-color:#eeeeee;">
+			<p:menuitem value="Home" url="./home.jsf" icon="ui-icon-home" />
+			<p:submenu label="Cash Management" icon="ui-icon-contact"
+				style="background-size: 100%;background-color:#eeeeee;">
+				<p:menuitem value="Cash Entry" url="./cashEntry.jsf"
+					icon="ui-icon-calculator" />
+				<p:menuitem value="Cash Flow" url="./cashFlow.jsf"
+					icon="ui-icon-shuffle" />
+				<p:menuitem value="Estimates" url="./estimates.jsf"
+					icon="ui-icon-calculator" />
+				<p:menuitem value="Reports" icon="ui-icon-image" url="./reports.jsf" />
+				<p:menuitem value="Import" url="./import.jsf"
+					icon="ui-icon-arrowthickstop-1-s" />
+			</p:submenu>
+			<p:submenu label="Administration" icon="ui-icon-gear"
+				style="background-size: 100%;background-color:#eeeeee;">
+				<p:menuitem value="Categories" icon="ui-icon-note"
+					url="./categories.jsf"
+					style="background-size: 100%;background-color:#eeeeee;" />
+				<p:menuitem value="Owners" icon="ui-icon-person" url="./owners.jsf"
+					style="background-size: 100%;background-color:#eeeeee;" />
+				<p:menuitem value="Snapshots" icon="ui-icon-arrowthickstop-1-s"
+					url="./snapshots.jsf"
+					style="background-size: 100%;background-color:#eeeeee;" />
+				<p:menuitem value="Cloud1" icon="ui-icon-arrowthickstop-1-s"
+					url="./cloudReports.jsf"
+					style="background-size: 100%;background-color:#eeeeee;" />
+			</p:submenu>
+			<f:facet name="options">
+				<p:commandButton value="#{siteBean.user}" icon="ui-icon-power"
+						action="#{siteBean.logout}" />
+			</f:facet>
+		</p:menubar>
+	</h:form>
+	
+
+  <iframe width="100%" height="1200" src="https://datastudio.google.com/embed/reporting/0Bw07hXW-Cnp1dVMwUF9KNmV5Q0U/page/VR4I" frameborder="0" style="border:0"></iframe>
+
+	
+</h:body>
+</html>

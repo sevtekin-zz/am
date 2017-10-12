@@ -69,7 +69,7 @@ public class SnapshotBean implements Serializable {
 	public void restoreSnapshot(){
 		try {
 			System.out.println(new Timestamp(new Date().getTime())
-					+ " [AM W3][INFO] Snapshot restore requested for " + snapshotEntry.getName());
+					+ " [AM W3][INFO] Snapshot restore requested for " + snapshotEntry.getId());
 			client.restoreSnapshot(snapshotEntry.getName());
 			FacesContext.getCurrentInstance().addMessage(
 					null,
@@ -91,6 +91,7 @@ public class SnapshotBean implements Serializable {
 					+ " [AM W3][INFO] Delete requested for "
 					+ snapshotEntry.getId() + " - " + snapshotEntry.getName());
 			client.deleteSnapshotEntry(snapshotEntry.getName());
+			
 			FacesContext.getCurrentInstance().addMessage(
 					null,
 					new FacesMessage(FacesMessage.SEVERITY_INFO,
