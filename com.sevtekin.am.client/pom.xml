@@ -15,7 +15,7 @@
 		<relativePath>../com.sevtekin.am.build/build.client/pom.xml</relativePath>
 	</parent>
 	<build>
-		<!-- directory>../output/client</directory-->
+		<!-- directory>../output/client</directory -->
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -41,7 +41,7 @@
 						</excludes>
 					</artifactSet>
 				</configuration>
-			</plugin> 
+			</plugin>
 		</plugins>
 	</build>
 	<dependencies>
@@ -59,6 +59,21 @@
 			<groupId>com.sun.jersey</groupId>
 			<artifactId>jersey-core</artifactId>
 			<version>1.18.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>[4.5.3,)</version>
+		</dependency>
+		<!-- dependency>
+			<groupId>com.google.http-client</groupId>
+			<artifactId>google-http-client-gson</artifactId>
+			<version>[1.22.0,)</version>
+		</dependency-->
+		<dependency>
+			<groupId>com.googlecode.json-simple</groupId>
+			<artifactId>json-simple</artifactId>
+			<version>[1.1.1,)</version>
 		</dependency>
 	</dependencies>
 </project>

@@ -1,552 +1,1389 @@
 package com.sevtekin.am.client;
 
-import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.StringReader;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
+import java.io.Reader;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
-import com.sevtekin.am.common.CashEntries;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+
+//import com.google.gson.Gson;
+//import com.google.gson.GsonBuilder;
 import com.sevtekin.am.common.CashEntry;
-import com.sevtekin.am.common.CategoryEntries;
 import com.sevtekin.am.common.CategoryEntry;
-import com.sevtekin.am.common.KeywordEntries;
 import com.sevtekin.am.common.KeywordEntry;
-import com.sevtekin.am.common.OwnerEntries;
 import com.sevtekin.am.common.OwnerEntry;
-import com.sevtekin.am.common.SnapshotEntries;
 import com.sevtekin.am.common.SnapshotEntry;
 import com.sevtekin.am.common.config.ConfigReader;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.config.ClientConfig;
-import com.sun.jersey.api.client.config.DefaultClientConfig;
 
 public class AMClient {
 
-	private String serviceUriRoot = "";
-
 	public AMClient() {
-		ConfigReader configReader = new ConfigReader();
-		serviceUriRoot = configReader.getServiceUriRoot();
-		if (serviceUriRoot.contains("https:")) {
-			new SSLHandler();
-		}
+
 	}
 
-	private void delete(String url) {
+	static String serviceUriRoot = new ConfigReader().getServiceUriRoot();
+
+	public static List<CashEntry> getCashEntries() {
+
+		// System.out.println("SERVICE URI ROOT " + serviceUriRoot);
+
+		CloseableHttpClient client;
+		List<CashEntry> entries = new ArrayList<CashEntry>();
+
 		try {
-			ClientConfig config = new DefaultClientConfig();
-			Client client = Client.create(config);
-			WebResource webResource = client.resource(url);
-			webResource.type("text/plain").post(String.class);
+			client = HttpClients.custom().setSSLSocketFactory(SSLUtil.getInsecureSSLConnectionSocketFactory()).build();
+			HttpGet httpGet = new HttpGet(serviceUriRoot + "/v1/cashentries");
+			//Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS")
+			//		.registerTypeAdapter(CashEntry.class, new CashEntryDeserializer()).setPrettyPrinting().create();
+			CloseableHttpResponse response;
+			response = client.execute(httpGet);
+			// System.out.println(response.getStatusLine());
+			HttpEntity entity = response.getEntity();
+			InputStream content = entity.getContent();
+			Reader reader = new InputStreamReader(content);
+			JSONParser parser = new JSONParser();
+			JSONArray ja = (JSONArray) parser.parse(reader);
+			Iterator i = ja.iterator();
+			while (i.hasNext()) {
+				JSONObject innerObj = (JSONObject) i.next();
+				CashEntry entry = new CashEntry();
+				entry.setId(Integer.parseInt(innerObj.get("id").toString()));
+				entry.setDescription(innerObj.get("description").toString());
+				entry.setAmount(Float.parseFloat(innerObj.get("amount").toString()));
+				OwnerEntry owner = new OwnerEntry();
+				owner.setId(Integer.parseInt(innerObj.get("ownerid").toString()));
+				owner.setName(innerObj.get("ownername").toString());
+				entry.setOwnerEntry(owner);
+				CategoryEntry category = new CategoryEntry();
+				category.setId(Integer.parseInt(innerObj.get("categoryid").toString()));
+				category.setName(innerObj.get("categoryname").toString());
+				entry.setCategoryEntry(category);
+				entry.setActualdate(new SimpleDateFormat("yyyy-MM-dd").parse(innerObj.get("actualdate").toString()));
+				//System.out.println("id " + innerObj.get("id") + " name " + innerObj.get("name") + " catid " + innerObj.get("categoryid"));
+				entries.add(entry);
+			}
+			//entries = Arrays.asList(gson.fromJson(reader, CashEntry[].class));
+			EntityUtils.consume(entity);
+			content.close();
+			response.close();
+			client.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-	}
-
-	public List<CashEntry> getCash(String url) {
-		URL restWebService;
-		URLConnection yc;
-		String data = null;
-		List<CashEntry> entries = null;
-		try {
-			restWebService = new URL(url);
-			yc = restWebService.openConnection();
-			BufferedReader in = new BufferedReader(new InputStreamReader(
-					yc.getInputStream()));
-			String inputLine;
-			while ((inputLine = in.readLine()) != null) {
-				data = inputLine;
-			}
-			in.close();
-			entries = deserializeCashEntries(data);
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		// System.out.println("Enties returned " + entries.size());
 		return entries;
 	}
-	
-	
 
-	public List<CashEntry> getCashEntries() {
-		String url = serviceUriRoot + "/cashentries";
-		return getCash(url);
-	}
-	
-	public List<CashEntry> getEstimateEntries() {
-		String url = serviceUriRoot + "/estimateentries";
-		return getCash(url);
-	}
+	public static List<CashEntry> getCashEntries(String filters) throws IOException {
 
-	public List<CashEntry> getCashEntries(String filters) {
-		String url = serviceUriRoot + "/cashentries/"
-				+ filters.replaceAll(" ", "%20");
-		return getCash(url);
-	}
-
-	public List<CashEntry> getCashEntriesSumByMonth() {
-		String url = serviceUriRoot + "/reports/sumbymonth";
-		return getCash(url);
-	}
-
-	public List<CashEntry> getCashEntriesSumByOwner() {
-		String url = serviceUriRoot + "/reports/sumbyowner";
-		return getCash(url);
-	}
-	
-	public CashEntry getCashEntriesSumByYear(int year) {
-		String url = serviceUriRoot + "/reports/sumbyyear/"+year;
-		URL restWebService;
-		URLConnection yc;
-		String data = null;
-		CashEntry entry = null;
+		CloseableHttpClient client;
+		List<CashEntry> entries = new ArrayList<CashEntry>();
 		try {
-			restWebService = new URL(url);
-			yc = restWebService.openConnection();
-			BufferedReader in = new BufferedReader(new InputStreamReader(
-					yc.getInputStream()));
-			String inputLine;
-			while ((inputLine = in.readLine()) != null) {
-				data = inputLine;
+			client = HttpClients.custom().setSSLSocketFactory(SSLUtil.getInsecureSSLConnectionSocketFactory()).build();
+			// if (filters.contains("description%20like%20%27%25%25%27%20"))
+			// filters = filters.substring(36, filters.length());
+			System.out.println(filters);
+
+			HttpGet httpGet = new HttpGet(serviceUriRoot + "/v1/cashentries/" + filters);
+			//Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS")
+			//		.registerTypeAdapter(CashEntry.class, new CashEntryDeserializer()).setPrettyPrinting().create();
+			CloseableHttpResponse response;
+			response = client.execute(httpGet);
+			// System.out.println(response.getStatusLine());
+			HttpEntity entity = response.getEntity();
+			InputStream content = entity.getContent();
+			Reader reader = new InputStreamReader(content);
+			JSONParser parser = new JSONParser();
+			JSONArray ja = (JSONArray) parser.parse(reader);
+			Iterator i = ja.iterator();
+			while (i.hasNext()) {
+				JSONObject innerObj = (JSONObject) i.next();
+				CashEntry entry = new CashEntry();
+				entry.setId(Integer.parseInt(innerObj.get("id").toString()));
+				entry.setDescription(innerObj.get("description").toString());
+				entry.setAmount(Float.parseFloat(innerObj.get("amount").toString()));
+				OwnerEntry owner = new OwnerEntry();
+				owner.setId(Integer.parseInt(innerObj.get("ownerid").toString()));
+				owner.setName(innerObj.get("ownername").toString());
+				entry.setOwnerEntry(owner);
+				CategoryEntry category = new CategoryEntry();
+				category.setId(Integer.parseInt(innerObj.get("categoryid").toString()));
+				category.setName(innerObj.get("categoryname").toString());
+				entry.setCategoryEntry(category);
+				entry.setActualdate(new SimpleDateFormat("yyyy-MM-dd").parse(innerObj.get("actualdate").toString()));
+				//System.out.println("id " + innerObj.get("id") + " name " + innerObj.get("name") + " catid " + innerObj.get("categoryid"));
+				entries.add(entry);
+				System.out.println(entry.getDescription());
 			}
-			in.close();
-			entry = deserializeCashEntry(data);
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return entry;
-	}
-
-	public List<CashEntry> getCashEntriesSumByMonthByCategory() {
-		String url = serviceUriRoot + "/reports/sumbymonthbycategory";
-		return getCash(url);
-	}
-	public List<CashEntry> getTop10ByCategory(int year,String sort) {
-		String url = serviceUriRoot + "/reports/top10bycategory/"+year+"/"+sort;
-		return getCash(url);
-	}
-
-	private void putCash(String url, CashEntry entry) {
-		try {
-			ClientConfig config = new DefaultClientConfig();
-			Client client = Client.create(config);
-			WebResource webResource = client.resource(url);
-			webResource.type("application/xml").post(ClientResponse.class,
-					entry);
+			//entries = Arrays.asList(gson.fromJson(reader, CashEntry[].class));
+			
+			EntityUtils.consume(entity);
+			content.close();
+			response.close();
+			client.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-	}
-
-	public void addCashEntry(CashEntry entry) {
-		String url = serviceUriRoot + "/addcashentry";
-		putCash(url, entry);
-	}
-
-	public void updateCashEntry(CashEntry entry) {
-		String url = serviceUriRoot + "/updatecashentry";
-		putCash(url, entry);
-	}
-	
-	public void updateEstimateEntry(CashEntry entry) {
-		String url = serviceUriRoot + "/updateestimateentry";
-		putCash(url, entry);
-	}
-
-	public void deleteCashEntry(int id) {
-		String url = serviceUriRoot + "/deletecashentry/" + id;
-		delete(url);
-	}
-
-	private static List<CashEntry> deserializeCashEntries(String data) {
-		CashEntries listOfEntries = null;
-		List<CashEntry> entries = null;
-		try {
-			JAXBContext jc = JAXBContext
-					.newInstance(new Class[] { com.sevtekin.am.common.CashEntries.class });
-			Unmarshaller unmarshaller = jc.createUnmarshaller();
-			listOfEntries = (CashEntries) unmarshaller
-					.unmarshal(new StringReader(data));
-			entries = listOfEntries.getCashEntry();
-		} catch (JAXBException e) {
-			e.printStackTrace();
-		}
+		// System.out.println("number of entries returned " + entries.size());
 		return entries;
-	}
-	
-	private static CashEntry deserializeCashEntry(String data) {
-		CashEntry entry = null;
-		try {
-			JAXBContext jc = JAXBContext
-					.newInstance(new Class[] { com.sevtekin.am.common.CashEntry.class });
-			Unmarshaller unmarshaller = jc.createUnmarshaller();
-			entry = (CashEntry) unmarshaller.unmarshal(new StringReader(
-					data));
-		} catch (JAXBException e) {
-			e.printStackTrace();
-		}
-		return entry;
+
 	}
 
-	// CATEGORY
+	public static CashEntry getCashEntry(int id) {
 
-	private List<CategoryEntry> getCategory(String url) {
-		URL restWebService;
-		URLConnection yc;
-		String data = null;
-		List<CategoryEntry> entries = null;
+		CloseableHttpClient client;
+		List<CashEntry> entries = new ArrayList<CashEntry>();
 		try {
-			restWebService = new URL(url);
-			yc = restWebService.openConnection();
-			BufferedReader in = new BufferedReader(new InputStreamReader(
-					yc.getInputStream()));
-			String inputLine;
-			while ((inputLine = in.readLine()) != null) {
-				data = inputLine;
+			client = HttpClients.custom().setSSLSocketFactory(SSLUtil.getInsecureSSLConnectionSocketFactory()).build();
+			HttpGet httpGet = new HttpGet(serviceUriRoot + "/v1/cashentry/" + id);
+			//Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS").setPrettyPrinting().create();
+			CloseableHttpResponse response;
+			response = client.execute(httpGet);
+			//System.out.println(response.getStatusLine());
+			HttpEntity entity = response.getEntity();
+			InputStream content = entity.getContent();
+			Reader reader = new InputStreamReader(content);
+			JSONParser parser = new JSONParser();
+			JSONArray ja = (JSONArray) parser.parse(reader);
+			Iterator i = ja.iterator();
+			while (i.hasNext()) {
+				JSONObject innerObj = (JSONObject) i.next();
+				CashEntry entry = new CashEntry();
+				entry.setId(Integer.parseInt(innerObj.get("id").toString()));
+				entry.setDescription(innerObj.get("description").toString());
+				entry.setAmount(Float.parseFloat(innerObj.get("amount").toString()));
+				OwnerEntry owner = new OwnerEntry();
+				owner.setId(Integer.parseInt(innerObj.get("ownerid").toString()));
+				owner.setName(innerObj.get("ownername").toString());
+				entry.setOwnerEntry(owner);
+				CategoryEntry category = new CategoryEntry();
+				category.setId(Integer.parseInt(innerObj.get("categoryid").toString()));
+				category.setName(innerObj.get("categoryname").toString());
+				entry.setCategoryEntry(category);
+				entry.setActualdate(new SimpleDateFormat("yyyy-MM-dd").parse(innerObj.get("actualdate").toString()));
+				//System.out.println("id " + innerObj.get("id") + " name " + innerObj.get("name") + " catid " + innerObj.get("categoryid"));
+				entries.add(entry);
 			}
-			in.close();
-			entries = deserializeCategoryEntries(data);
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return entries;
-	}
-
-	public List<CategoryEntry> getCategoryEntries() {
-		String url = serviceUriRoot + "/categoryentries";
-		return getCategory(url);
-	}
-
-	public CategoryEntry getCategoryEntry(int id) {
-		String url = serviceUriRoot + "/categoryentry/" + id;
-		URL restWebService;
-		URLConnection yc;
-		String data = null;
-		CategoryEntry entry = null;
-		try {
-			restWebService = new URL(url);
-			yc = restWebService.openConnection();
-			BufferedReader in = new BufferedReader(new InputStreamReader(
-					yc.getInputStream()));
-			String inputLine;
-			while ((inputLine = in.readLine()) != null) {
-				data = inputLine;
-			}
-			in.close();
-			entry = deserializeCategoryEntry(data);
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return entry;
-	}
-
-	private void putCategory(String url, CategoryEntry entry) {
-		try {
-			ClientConfig config = new DefaultClientConfig();
-			Client client = Client.create(config);
-			WebResource webResource = client.resource(url);
-			ClientResponse response = webResource.type("application/xml").post(
-					ClientResponse.class, entry);
-			response.getStatus();
+			//entries = Arrays.asList(gson.fromJson(reader, CashEntry[].class));
+			EntityUtils.consume(entity);
+			content.close();
+			response.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		return entries.get(0);
+
 	}
 
-	public void addCategoryEntry(CategoryEntry entry) {
-		String url = serviceUriRoot + "/addcategoryentry";
-		putCategory(url, entry);
-	}
+	public static CategoryEntry getCategoryEntry(int id) {
 
-	public void updateCategoryEntry(CategoryEntry entry) {
-		String url = serviceUriRoot + "/updatecategoryentry";
-		putCategory(url, entry);
-	}
-
-	public void deleteCategoryEntry(int id) {
-		String url = serviceUriRoot + "/deletecategoryentry/" + id;
-		delete(url);
-	}
-
-	private static List<CategoryEntry> deserializeCategoryEntries(String data) {
-		CategoryEntries listOfEntries = null;
-		List<CategoryEntry> entries = null;
+		CloseableHttpClient client;
+		List<CategoryEntry> entries = new ArrayList<CategoryEntry>();
+		List<KeywordEntry> keywords = getKeywordEntries();
 		try {
-			JAXBContext jc = JAXBContext
-					.newInstance(new Class[] { com.sevtekin.am.common.CategoryEntries.class });
-			Unmarshaller unmarshaller = jc.createUnmarshaller();
-			listOfEntries = (CategoryEntries) unmarshaller
-					.unmarshal(new StringReader(data));
-			entries = listOfEntries.getCategoryEntry();
-		} catch (JAXBException e) {
-			e.printStackTrace();
-		}
-		return entries;
-	}
-
-	private static CategoryEntry deserializeCategoryEntry(String data) {
-		CategoryEntry entry = null;
-		try {
-			JAXBContext jc = JAXBContext
-					.newInstance(new Class[] { com.sevtekin.am.common.CategoryEntry.class });
-			Unmarshaller unmarshaller = jc.createUnmarshaller();
-			entry = (CategoryEntry) unmarshaller.unmarshal(new StringReader(
-					data));
-		} catch (JAXBException e) {
-			e.printStackTrace();
-		}
-		return entry;
-	}
-
-	// OWNER
-
-	private List<OwnerEntry> getOwner(String url) {
-		URL restWebService;
-		URLConnection yc;
-		String data = null;
-		List<OwnerEntry> entries = null;
-		try {
-			restWebService = new URL(url);
-			yc = restWebService.openConnection();
-			BufferedReader in = new BufferedReader(new InputStreamReader(
-					yc.getInputStream()));
-			String inputLine;
-			while ((inputLine = in.readLine()) != null) {
-				data = inputLine;
+			client = HttpClients.custom().setSSLSocketFactory(SSLUtil.getInsecureSSLConnectionSocketFactory()).build();
+			HttpGet httpGet = new HttpGet(serviceUriRoot + "/v1/categoryentry/" + id);
+			//Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS").setPrettyPrinting().create();
+			CloseableHttpResponse response;
+			response = client.execute(httpGet);
+			//System.out.println(response.getStatusLine());
+			HttpEntity entity = response.getEntity();
+			InputStream content = entity.getContent();
+			Reader reader = new InputStreamReader(content);
+			JSONParser parser = new JSONParser();
+			JSONArray ja = (JSONArray) parser.parse(reader);
+			Iterator i = ja.iterator();
+			while (i.hasNext()) {
+				JSONObject innerObj = (JSONObject) i.next();
+				CategoryEntry entry = new CategoryEntry();
+				entry.setId(Integer.parseInt(innerObj.get("id").toString()));
+				entry.setName(innerObj.get("name").toString());
+				//System.out.println("id " + innerObj.get("id") + " name " + innerObj.get("name") + " catid " + innerObj.get("categoryid"));
+				entries.add(entry);
 			}
-			in.close();
-			entries = deserializeOwnerEntries(data);
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return entries;
-	}
-
-	public List<OwnerEntry> getOwnerEntries() {
-		String url = serviceUriRoot + "/ownerentries";
-		return getOwner(url);
-	}
-
-	public void putOwner(String url, OwnerEntry entry) {
-		try {
-			ClientConfig config = new DefaultClientConfig();
-			Client client = Client.create(config);
-			WebResource webResource = client.resource(url);
-			ClientResponse response = webResource.type("application/xml").post(
-					ClientResponse.class, entry);
-			response.getStatus();
+			//entries = Arrays.asList(gson.fromJson(reader, CategoryEntry[].class));
+			EntityUtils.consume(entity);
+			content.close();
+			response.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-	}
-
-	public void addOwnerEntry(OwnerEntry entry) {
-		String url = serviceUriRoot + "/addownerentry";
-		putOwner(url, entry);
-	}
-
-	public void updateOwnerEntry(OwnerEntry entry) {
-		String url = serviceUriRoot + "/updateownerentry";
-		putOwner(url, entry);
-	}
-
-	public void deleteOwnerEntry(int id) {
-		String url = serviceUriRoot + "/deleteownerentry/" + id;
-		delete(url);
-	}
-
-	private static List<OwnerEntry> deserializeOwnerEntries(String data) {
-		OwnerEntries listOfEntries = null;
-		List<OwnerEntry> entries = null;
-		// System.out.println(data);
-		try {
-			JAXBContext jc = JAXBContext
-					.newInstance(new Class[] { com.sevtekin.am.common.OwnerEntries.class });
-			Unmarshaller unmarshaller = jc.createUnmarshaller();
-			listOfEntries = (OwnerEntries) unmarshaller
-					.unmarshal(new StringReader(data));
-			entries = listOfEntries.getOwnerEntry();
-		} catch (JAXBException e) {
-			e.printStackTrace();
+		for (CategoryEntry c : entries) {
+			List<KeywordEntry> ks = new ArrayList();
+			for (KeywordEntry k : keywords)
+				if (k.getCategoryId() == c.getId())
+					ks.add(k);
+			c.setKeywordEntry(ks);
 		}
-		return entries;
+		return entries.get(0);
+
 	}
 
-	// Keyword
+	public static void addCashEntry(CashEntry entry) {
 
-	public List<KeywordEntry> getKeyword(String url) {
-		URL restWebService;
-		URLConnection yc;
-		String data = null;
-		List<KeywordEntry> entries = null;
 		try {
-			restWebService = new URL(url);
-			yc = restWebService.openConnection();
-			BufferedReader in = new BufferedReader(new InputStreamReader(
-					yc.getInputStream()));
-			String inputLine;
-			while ((inputLine = in.readLine()) != null) {
-				data = inputLine;
-			}
-			in.close();
-			entries = deserializeKeywordEntries(data);
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
+			CloseableHttpClient client = HttpClients.custom()
+					.setSSLSocketFactory(SSLUtil.getInsecureSSLConnectionSocketFactory()).build();
+
+			HttpPost httpPost = new HttpPost(serviceUriRoot + "/v1/addcashentry");
+			httpPost.setHeader("Accept", "application/json");
+			httpPost.setHeader("Content-type", "application/json");
+
+			//Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS").setPrettyPrinting().create();
+
+			// System.out.println(gson.toJson(entry).toString());
+			//StringEntity entity = new StringEntity(gson.toJson(entry).toString());
+           
+			JSONObject obj = new JSONObject();
+	        obj.put("description", entry.getDescription());
+	        obj.put("amount", entry.getAmount());
+	        obj.put("categoryid", entry.getCategoryEntry().getId());
+	        obj.put("ownerid", entry.getOwnerEntry().getId());
+	        //System.out.println(entry.getActualdate());
+	        String strDate = new SimpleDateFormat("yyyy-MM-dd").format(entry.getActualdate());
+	        //System.out.println(strDate);
+	        obj.put("actualdate", strDate);
+	        obj.put("name", entry.getDescription());
+			StringEntity entity = new StringEntity(obj.toString());
+			httpPost.setEntity(entity);
+
+			CloseableHttpResponse response = client.execute(httpPost);
+
+			client.close();
+		} catch (Exception ex) {
+			ex.printStackTrace();
 		}
-		return entries;
 	}
 
-	public List<KeywordEntry> getKeywordEntries() {
-		String url = serviceUriRoot + "/keywordentries";
-		return getKeyword(url);
-	}
+	public static void addCategoryEntry(CategoryEntry entry) {
 
-	public String putKeyword(String url, KeywordEntry entry) {
-		String ret = "";
 		try {
-			ClientConfig config = new DefaultClientConfig();
-			Client client = Client.create(config);
-			WebResource webResource = client.resource(url);
-			ClientResponse response = webResource.type("application/xml").post(
-					ClientResponse.class, entry);
-			ret=response.getEntity(String.class);
-			response.getStatus();
-		} catch (Exception e) {
-			e.printStackTrace();
+			CloseableHttpClient client = HttpClients.custom()
+					.setSSLSocketFactory(SSLUtil.getInsecureSSLConnectionSocketFactory()).build();
+
+			HttpPost httpPost = new HttpPost(serviceUriRoot + "/v1/addcategoryentry");
+			httpPost.setHeader("Accept", "application/json");
+			httpPost.setHeader("Content-type", "application/json");
+
+			JSONObject obj = new JSONObject();
+	        obj.put("name", entry.getName());
+			StringEntity entity = new StringEntity(obj.toString());
+
+			httpPost.setEntity(entity);
+
+			CloseableHttpResponse response = client.execute(httpPost);
+
+			client.close();
+		} catch (Exception ex) {
+			ex.printStackTrace();
 		}
-		return ret;
+	}
+
+	public static void addOwnerEntry(OwnerEntry entry) {
+
+		try {
+			CloseableHttpClient client = HttpClients.custom()
+					.setSSLSocketFactory(SSLUtil.getInsecureSSLConnectionSocketFactory()).build();
+
+			HttpPost httpPost = new HttpPost(serviceUriRoot + "/v1/addownerentry");
+			httpPost.setHeader("Accept", "application/json");
+			httpPost.setHeader("Content-type", "application/json");
+			JSONObject obj = new JSONObject();
+	        obj.put("name", entry.getName());
+			StringEntity entity = new StringEntity(obj.toString());
+
+			httpPost.setEntity(entity);
+
+			CloseableHttpResponse response = client.execute(httpPost);
+
+			client.close();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
 	}
 
 	public String addKeywordEntry(KeywordEntry entry) {
-		String url = serviceUriRoot + "/addkeywordentry";
-		return putKeyword(url, entry);
-	}
 
-	public void updateKeywordEntry(KeywordEntry entry) {
-		String url = serviceUriRoot + "/updateownerentry";
-		putKeyword(url, entry);
-	}
-
-	public void deleteKeywordEntry(int id) {
-		String url = serviceUriRoot + "/deletekeywordentry/" + id;
-		delete(url);
-	}
-
-	private static List<KeywordEntry> deserializeKeywordEntries(String data) {
-		KeywordEntries listOfEntries = null;
-		List<KeywordEntry> entries = null;
 		try {
-			JAXBContext jc = JAXBContext
-					.newInstance(new Class[] { com.sevtekin.am.common.KeywordEntries.class });
-			Unmarshaller unmarshaller = jc.createUnmarshaller();
-			listOfEntries = (KeywordEntries) unmarshaller
-					.unmarshal(new StringReader(data));
-			entries = listOfEntries.getKeywordEntry();
-		} catch (JAXBException e) {
+			CloseableHttpClient client = HttpClients.custom()
+					.setSSLSocketFactory(SSLUtil.getInsecureSSLConnectionSocketFactory()).build();
+
+			HttpPost httpPost = new HttpPost(serviceUriRoot + "/v1/addkeywordentry");
+			httpPost.setHeader("Accept", "application/json");
+			httpPost.setHeader("Content-type", "application/json");
+
+			JSONObject obj = new JSONObject();
+	        obj.put("name", entry.getName());
+	        obj.put("categoryid", entry.getCategoryId());
+			StringEntity entity = new StringEntity(obj.toString());
+			httpPost.setEntity(entity);
+
+			CloseableHttpResponse response = client.execute(httpPost);
+
+			client.close();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		return "OK";
+	}
+
+	public static void updateCashEntry(CashEntry entry) {
+
+		try {
+			CloseableHttpClient client = HttpClients.custom()
+					.setSSLSocketFactory(SSLUtil.getInsecureSSLConnectionSocketFactory()).build();
+
+			HttpPost httpPost = new HttpPost(serviceUriRoot + "/v1/updatecashentry/" + entry.getId());
+			httpPost.setHeader("Accept", "application/json");
+			httpPost.setHeader("Content-type", "application/json");
+
+			JSONObject obj = new JSONObject();
+	        obj.put("description", entry.getDescription());
+	        obj.put("amount", entry.getAmount());
+	        obj.put("categoryid", entry.getCategoryEntry().getId());
+	        obj.put("ownerid", entry.getOwnerEntry().getId());
+	        //System.out.println(entry.getActualdate());
+	        String strDate = new SimpleDateFormat("yyyy-MM-dd").format(entry.getActualdate());
+	        //System.out.println(strDate);
+	        obj.put("actualdate", strDate);
+	        obj.put("name", entry.getDescription());
+			StringEntity entity = new StringEntity(obj.toString());
+
+			httpPost.setEntity(entity);
+
+			CloseableHttpResponse response = client.execute(httpPost);
+			response.close();
+			client.close();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+
+	public static void deleteCashEntry(int id) {
+		try {
+			CloseableHttpClient client = HttpClients.custom()
+					.setSSLSocketFactory(SSLUtil.getInsecureSSLConnectionSocketFactory()).build();
+			System.out.println("Deleting " + id);
+			HttpPost httpPost = new HttpPost(serviceUriRoot + "/v1/deletecashentry/" + id);
+			httpPost.setHeader("Accept", "application/json");
+			httpPost.setHeader("Content-type", "application/json");
+			StringEntity entity = new StringEntity("[]");
+			httpPost.setEntity(entity);
+			CloseableHttpResponse response = client.execute(httpPost);
+			response.close();
+			client.close();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+
+	public static void deleteCategoryEntry(int id) {
+		try {
+			CloseableHttpClient client = HttpClients.custom()
+					.setSSLSocketFactory(SSLUtil.getInsecureSSLConnectionSocketFactory()).build();
+			System.out.println("Deleting " + id);
+			HttpPost httpPost = new HttpPost(serviceUriRoot + "/v1/deletecategoryentry/" + id);
+			httpPost.setHeader("Accept", "application/json");
+			httpPost.setHeader("Content-type", "application/json");
+			StringEntity entity = new StringEntity("[]");
+			httpPost.setEntity(entity);
+			CloseableHttpResponse response = client.execute(httpPost);
+			response.close();
+			client.close();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+
+	public static void deleteOwnerEntry(int id) {
+		try {
+			CloseableHttpClient client = HttpClients.custom()
+					.setSSLSocketFactory(SSLUtil.getInsecureSSLConnectionSocketFactory()).build();
+			System.out.println("Deleting " + id);
+			HttpPost httpPost = new HttpPost(serviceUriRoot + "/v1/deleteownerentry/" + id);
+			httpPost.setHeader("Accept", "application/json");
+			httpPost.setHeader("Content-type", "application/json");
+			StringEntity entity = new StringEntity("[]");
+			httpPost.setEntity(entity);
+			CloseableHttpResponse response = client.execute(httpPost);
+			response.close();
+			client.close();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+
+	public static void deleteKeywordEntry(int id) {
+		try {
+			CloseableHttpClient client = HttpClients.custom()
+					.setSSLSocketFactory(SSLUtil.getInsecureSSLConnectionSocketFactory()).build();
+			System.out.println("Deleting " + id);
+			HttpPost httpPost = new HttpPost(serviceUriRoot + "/v1/deletekeywordentry/" + id);
+			httpPost.setHeader("Accept", "application/json");
+			httpPost.setHeader("Content-type", "application/json");
+			StringEntity entity = new StringEntity("[]");
+			httpPost.setEntity(entity);
+			CloseableHttpResponse response = client.execute(httpPost);
+			response.close();
+			client.close();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+
+	public static List<CategoryEntry> getCategoryEntries() {
+		CloseableHttpClient client;
+		List<CategoryEntry> entries = new ArrayList<CategoryEntry>();
+		List<KeywordEntry> keywords = getKeywordEntries();
+
+		try {
+			client = HttpClients.custom().setSSLSocketFactory(SSLUtil.getInsecureSSLConnectionSocketFactory()).build();
+			HttpGet httpGet = new HttpGet(serviceUriRoot + "/v1/categoryentries");
+//			Gson gson = new GsonBuilder().setPrettyPrinting().create();
+			CloseableHttpResponse response;
+			response = client.execute(httpGet);
+			HttpEntity entity = response.getEntity();
+			InputStream content = entity.getContent();
+			Reader reader = new InputStreamReader(content);
+//			entries = Arrays.asList(gson.fromJson(reader, CategoryEntry[].class));
+			JSONParser parser = new JSONParser();
+			JSONArray ja = (JSONArray) parser.parse(reader);
+			Iterator i = ja.iterator();
+			while (i.hasNext()) {
+				JSONObject innerObj = (JSONObject) i.next();
+				CategoryEntry entry = new CategoryEntry();
+				entry.setId(Integer.parseInt(innerObj.get("id").toString()));
+				entry.setName(innerObj.get("name").toString());
+				//System.out.println("id " + innerObj.get("id") + " name " + innerObj.get("name") + " catid " + innerObj.get("categoryid"));
+				entries.add(entry);
+			}
+			EntityUtils.consume(entity);
+			content.close();
+			response.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		for (CategoryEntry c : entries) {
+			List<KeywordEntry> ks = new ArrayList();
+			for (KeywordEntry k : keywords)
+				if (k.getCategoryId() == c.getId())
+					ks.add(k);
+			c.setKeywordEntry(ks);
+		}
+		return entries;
+	}
+
+	public static List<KeywordEntry> getKeywordEntries() {
+		CloseableHttpClient client;
+		List<KeywordEntry> entries = new ArrayList<KeywordEntry>();
+
+		try {
+			client = HttpClients.custom().setSSLSocketFactory(SSLUtil.getInsecureSSLConnectionSocketFactory()).build();
+			HttpGet httpGet = new HttpGet(serviceUriRoot + "/v1/keywordentries");
+			// Gson gson = new GsonBuilder().setPrettyPrinting().create();
+			CloseableHttpResponse response;
+			response = client.execute(httpGet);
+			HttpEntity entity = response.getEntity();
+			InputStream content = entity.getContent();
+			Reader reader = new InputStreamReader(content);
+			JSONParser parser = new JSONParser();
+			JSONArray ja = (JSONArray) parser.parse(reader);
+			Iterator i = ja.iterator();
+			while (i.hasNext()) {
+				JSONObject innerObj = (JSONObject) i.next();
+				KeywordEntry entry = new KeywordEntry();
+				entry.setId(Integer.parseInt(innerObj.get("id").toString()));
+				entry.setName(innerObj.get("name").toString());
+				entry.setCategoryId(Integer.parseInt(innerObj.get("categoryid").toString()));
+				//System.out.println("id " + innerObj.get("id") + " name " + innerObj.get("name") + " catid " + innerObj.get("categoryid"));
+				entries.add(entry);
+			}
+
+			// entries = Arrays.asList(gson.fromJson(reader, KeywordEntry[].class));
+			EntityUtils.consume(entity);
+			content.close();
+			response.close();
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return entries;
+	}
+
+	public static List<OwnerEntry> getOwnerEntries() {
+		CloseableHttpClient client;
+		List<OwnerEntry> entries = new ArrayList<OwnerEntry>();
+
+		try {
+			client = HttpClients.custom().setSSLSocketFactory(SSLUtil.getInsecureSSLConnectionSocketFactory()).build();
+			HttpGet httpGet = new HttpGet(serviceUriRoot + "/v1/ownerentries");
+			//Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS").setPrettyPrinting().create();
+			CloseableHttpResponse response;
+			response = client.execute(httpGet);
+			//System.out.println(response.getStatusLine());
+			HttpEntity entity = response.getEntity();
+			InputStream content = entity.getContent();
+			Reader reader = new InputStreamReader(content);
+			JSONParser parser = new JSONParser();
+			JSONArray ja = (JSONArray) parser.parse(reader);
+			Iterator i = ja.iterator();
+			while (i.hasNext()) {
+				JSONObject innerObj = (JSONObject) i.next();
+				OwnerEntry entry = new OwnerEntry();
+				entry.setId(Integer.parseInt(innerObj.get("id").toString()));
+				entry.setName(innerObj.get("name").toString());
+				//System.out.println("id " + innerObj.get("id") + " name " + innerObj.get("name") + " catid " + innerObj.get("categoryid"));
+				entries.add(entry);
+			}
+			//entries = Arrays.asList(gson.fromJson(reader, OwnerEntry[].class));
+			EntityUtils.consume(entity);
+			content.close();
+			response.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return entries;
+	}
+
+	public static List<CashEntry> getEstimateEntries() {
+		CloseableHttpClient client;
+		List<CashEntry> entries = new ArrayList<CashEntry>();
+
+		try {
+			client = HttpClients.custom().setSSLSocketFactory(SSLUtil.getInsecureSSLConnectionSocketFactory()).build();
+			HttpGet httpGet = new HttpGet(serviceUriRoot + "/v1/estimateentries");
+			//Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS").setPrettyPrinting().create();
+			CloseableHttpResponse response;
+			response = client.execute(httpGet);
+			//System.out.println(response.getStatusLine());
+			HttpEntity entity = response.getEntity();
+			InputStream content = entity.getContent();
+			Reader reader = new InputStreamReader(content);
+			JSONParser parser = new JSONParser();
+			JSONArray ja = (JSONArray) parser.parse(reader);
+			Iterator i = ja.iterator();
+			while (i.hasNext()) {
+				JSONObject innerObj = (JSONObject) i.next();
+				CashEntry entry = new CashEntry();
+				entry.setId(Integer.parseInt(innerObj.get("id").toString()));
+				entry.setAmount(Float.parseFloat(innerObj.get("amount").toString()));
+				//System.out.println("id " + innerObj.get("id") + " name " + innerObj.get("name") + " catid " + innerObj.get("categoryid"));
+				entries.add(entry);
+			}
+			//entries = Arrays.asList(gson.fromJson(reader, CashEntry[].class));
+			EntityUtils.consume(entity);
+			content.close();
+			response.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return entries;
+	}
+
+	public static List<CashEntry> getSumByMonth() {
+
+		CloseableHttpClient client;
+		List<CashEntry> entries = new ArrayList<CashEntry>();
+
+		try {
+			client = HttpClients.custom().setSSLSocketFactory(SSLUtil.getInsecureSSLConnectionSocketFactory()).build();
+			HttpGet httpGet = new HttpGet(serviceUriRoot + "/v1/reports/sumbymonth");
+			//Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS")
+			//		.registerTypeAdapter(CashEntry.class, new CashEntryDeserializer()).setPrettyPrinting().create();
+			CloseableHttpResponse response;
+			response = client.execute(httpGet);
+			//System.out.println(response.getStatusLine());
+			HttpEntity entity = response.getEntity();
+			InputStream content = entity.getContent();
+			Reader reader = new InputStreamReader(content);
+			JSONParser parser = new JSONParser();
+			JSONArray ja = (JSONArray) parser.parse(reader);
+			Iterator i = ja.iterator();
+			while (i.hasNext()) {
+				JSONObject innerObj = (JSONObject) i.next();
+				CashEntry entry = new CashEntry();
+				entry.setId(Integer.parseInt(innerObj.get("id").toString()));
+				entry.setDescription(innerObj.get("description").toString());
+				entry.setAmount(Float.parseFloat(innerObj.get("amount").toString()));
+				OwnerEntry owner = new OwnerEntry();
+				owner.setId(Integer.parseInt(innerObj.get("ownerid").toString()));
+				owner.setName(innerObj.get("ownername").toString());
+				entry.setOwnerEntry(owner);
+				CategoryEntry category = new CategoryEntry();
+				category.setId(Integer.parseInt(innerObj.get("categoryid").toString()));
+				category.setName(innerObj.get("categoryname").toString());
+				entry.setCategoryEntry(category);
+				entry.setActualdate(new SimpleDateFormat("yyyy-MM-dd").parse(innerObj.get("actualdate").toString()));
+				//System.out.println("id " + innerObj.get("id") + " name " + innerObj.get("name") + " catid " + innerObj.get("categoryid"));
+				entries.add(entry);
+			}
+			//entries = Arrays.asList(gson.fromJson(reader, CashEntry[].class));
+			EntityUtils.consume(entity);
+			content.close();
+			response.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return entries;
+	}
+
+	public static List<CashEntry> getSumByOwner() {
+
+		CloseableHttpClient client;
+		List<CashEntry> entries = new ArrayList<CashEntry>();
+
+		try {
+			client = HttpClients.custom().setSSLSocketFactory(SSLUtil.getInsecureSSLConnectionSocketFactory()).build();
+			HttpGet httpGet = new HttpGet(serviceUriRoot + "/v1/reports/sumbyowner");
+			//Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS")
+			//		.registerTypeAdapter(CashEntry.class, new CashEntryDeserializer()).setPrettyPrinting().create();
+			CloseableHttpResponse response;
+			response = client.execute(httpGet);
+			//System.out.println(response.getStatusLine());
+			HttpEntity entity = response.getEntity();
+			InputStream content = entity.getContent();
+			Reader reader = new InputStreamReader(content);
+			JSONParser parser = new JSONParser();
+			JSONArray ja = (JSONArray) parser.parse(reader);
+			Iterator i = ja.iterator();
+			while (i.hasNext()) {
+				JSONObject innerObj = (JSONObject) i.next();
+				CashEntry entry = new CashEntry();
+				entry.setId(Integer.parseInt(innerObj.get("id").toString()));
+				entry.setDescription(innerObj.get("description").toString());
+				entry.setAmount(Float.parseFloat(innerObj.get("amount").toString()));
+				OwnerEntry owner = new OwnerEntry();
+				owner.setId(Integer.parseInt(innerObj.get("ownerid").toString()));
+				owner.setName(innerObj.get("ownername").toString());
+				entry.setOwnerEntry(owner);
+				CategoryEntry category = new CategoryEntry();
+				category.setId(Integer.parseInt(innerObj.get("categoryid").toString()));
+				category.setName(innerObj.get("categoryname").toString());
+				entry.setCategoryEntry(category);
+				entry.setActualdate(new SimpleDateFormat("yyyy-MM-dd").parse(innerObj.get("actualdate").toString()));
+				//System.out.println("id " + innerObj.get("id") + " name " + innerObj.get("name") + " catid " + innerObj.get("categoryid"));
+				entries.add(entry);
+			}
+			//entries = Arrays.asList(gson.fromJson(reader, CashEntry[].class));
+			EntityUtils.consume(entity);
+			content.close();
+			response.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return entries;
+	}
+
+	public static CashEntry getSumByYear(int year) {
+
+		CloseableHttpClient client;
+		List<CashEntry> entries = new ArrayList<CashEntry>();
+
+		try {
+			client = HttpClients.custom().setSSLSocketFactory(SSLUtil.getInsecureSSLConnectionSocketFactory()).build();
+			HttpGet httpGet = new HttpGet(serviceUriRoot + "/v1/reports/sumbyyear/" + year);
+			//Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS")
+			//		.registerTypeAdapter(CashEntry.class, new CashEntryDeserializer()).setPrettyPrinting().create();
+			CloseableHttpResponse response;
+			response = client.execute(httpGet);
+			//System.out.println(response.getStatusLine());
+			HttpEntity entity = response.getEntity();
+			InputStream content = entity.getContent();
+			Reader reader = new InputStreamReader(content);
+			//System.out.println(reader.toString());
+			JSONParser parser = new JSONParser();
+			JSONArray ja = (JSONArray) parser.parse(reader);
+			Iterator i = ja.iterator();
+			while (i.hasNext()) {
+				JSONObject innerObj = (JSONObject) i.next();
+				CashEntry entry = new CashEntry();
+				entry.setId(Integer.parseInt(innerObj.get("id").toString()));
+				entry.setDescription(innerObj.get("description").toString());
+				entry.setAmount(Float.parseFloat(innerObj.get("amount").toString()));
+				OwnerEntry owner = new OwnerEntry();
+				owner.setId(Integer.parseInt(innerObj.get("ownerid").toString()));
+				owner.setName(innerObj.get("ownername").toString());
+				entry.setOwnerEntry(owner);
+				CategoryEntry category = new CategoryEntry();
+				category.setId(Integer.parseInt(innerObj.get("categoryid").toString()));
+				category.setName(innerObj.get("categoryname").toString());
+				entry.setCategoryEntry(category);
+				entry.setActualdate(new SimpleDateFormat("yyyy-MM-dd").parse(innerObj.get("actualdate").toString()));
+				//System.out.println("id " + innerObj.get("id") + " name " + innerObj.get("name") + " catid " + innerObj.get("categoryid"));
+				entries.add(entry);
+			}
+			//entries = Arrays.asList(gson.fromJson(reader, CashEntry[].class));
+			EntityUtils.consume(entity);
+			content.close();
+			response.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return entries.get(0);
+	}
+	
+	public static double getRetainedByYear(int year) {
+
+		CloseableHttpClient client;
+		List<CashEntry> entries = new ArrayList<CashEntry>();
+
+		try {
+			client = HttpClients.custom().setSSLSocketFactory(SSLUtil.getInsecureSSLConnectionSocketFactory()).build();
+			HttpGet httpGet = new HttpGet(serviceUriRoot + "/v1/reports/retainedbyyear/" + year);
+			CloseableHttpResponse response;
+			response = client.execute(httpGet);
+			//System.out.println(response.getStatusLine());
+			HttpEntity entity = response.getEntity();
+			InputStream content = entity.getContent();
+			Reader reader = new InputStreamReader(content);
+			//System.out.println(reader.toString());
+			JSONParser parser = new JSONParser();
+			JSONArray ja = (JSONArray) parser.parse(reader);
+			Iterator i = ja.iterator();
+			while (i.hasNext()) {
+				JSONObject innerObj = (JSONObject) i.next();
+				CashEntry entry = new CashEntry();
+				entry.setId(Integer.parseInt(innerObj.get("id").toString()));
+				entry.setDescription(innerObj.get("description").toString());
+				entry.setAmount(Float.parseFloat(innerObj.get("amount").toString()));
+				OwnerEntry owner = new OwnerEntry();
+				owner.setId(Integer.parseInt(innerObj.get("ownerid").toString()));
+				owner.setName(innerObj.get("ownername").toString());
+				entry.setOwnerEntry(owner);
+				CategoryEntry category = new CategoryEntry();
+				category.setId(Integer.parseInt(innerObj.get("categoryid").toString()));
+				category.setName(innerObj.get("categoryname").toString());
+				entry.setCategoryEntry(category);
+				entry.setActualdate(new SimpleDateFormat("yyyy-MM-dd").parse(innerObj.get("actualdate").toString()));
+				//System.out.println("id " + innerObj.get("id") + " name " + innerObj.get("name") + " catid " + innerObj.get("categoryid"));
+				entries.add(entry);
+			}
+			//entries = Arrays.asList(gson.fromJson(reader, CashEntry[].class));
+			EntityUtils.consume(entity);
+			content.close();
+			response.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return entries.get(0).getAmount();
+	}
+	
+	public static double getGainedByYear(int year) {
+
+		CloseableHttpClient client;
+		List<CashEntry> entries = new ArrayList<CashEntry>();
+
+		try {
+			client = HttpClients.custom().setSSLSocketFactory(SSLUtil.getInsecureSSLConnectionSocketFactory()).build();
+			HttpGet httpGet = new HttpGet(serviceUriRoot + "/v1/reports/gainedbyyear/" + year);
+			CloseableHttpResponse response;
+			response = client.execute(httpGet);
+			//System.out.println(response.getStatusLine());
+			HttpEntity entity = response.getEntity();
+			InputStream content = entity.getContent();
+			Reader reader = new InputStreamReader(content);
+			//System.out.println(reader.toString());
+			JSONParser parser = new JSONParser();
+			JSONArray ja = (JSONArray) parser.parse(reader);
+			Iterator i = ja.iterator();
+			while (i.hasNext()) {
+				JSONObject innerObj = (JSONObject) i.next();
+				CashEntry entry = new CashEntry();
+				entry.setId(Integer.parseInt(innerObj.get("id").toString()));
+				entry.setDescription(innerObj.get("description").toString());
+				entry.setAmount(Float.parseFloat(innerObj.get("amount").toString()));
+				OwnerEntry owner = new OwnerEntry();
+				owner.setId(Integer.parseInt(innerObj.get("ownerid").toString()));
+				owner.setName(innerObj.get("ownername").toString());
+				entry.setOwnerEntry(owner);
+				CategoryEntry category = new CategoryEntry();
+				category.setId(Integer.parseInt(innerObj.get("categoryid").toString()));
+				category.setName(innerObj.get("categoryname").toString());
+				entry.setCategoryEntry(category);
+				entry.setActualdate(new SimpleDateFormat("yyyy-MM-dd").parse(innerObj.get("actualdate").toString()));
+				//System.out.println("id " + innerObj.get("id") + " name " + innerObj.get("name") + " catid " + innerObj.get("categoryid"));
+				entries.add(entry);
+			}
+			//entries = Arrays.asList(gson.fromJson(reader, CashEntry[].class));
+			EntityUtils.consume(entity);
+			content.close();
+			response.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return entries.get(0).getAmount();
+	}
+	
+	public static double getSpentByYear(int year) {
+
+		CloseableHttpClient client;
+		List<CashEntry> entries = new ArrayList<CashEntry>();
+
+		try {
+			client = HttpClients.custom().setSSLSocketFactory(SSLUtil.getInsecureSSLConnectionSocketFactory()).build();
+			HttpGet httpGet = new HttpGet(serviceUriRoot + "/v1/reports/spentbyyear/" + year);
+			CloseableHttpResponse response;
+			response = client.execute(httpGet);
+			//System.out.println(response.getStatusLine());
+			HttpEntity entity = response.getEntity();
+			InputStream content = entity.getContent();
+			Reader reader = new InputStreamReader(content);
+			//System.out.println(reader.toString());
+			JSONParser parser = new JSONParser();
+			JSONArray ja = (JSONArray) parser.parse(reader);
+			Iterator i = ja.iterator();
+			while (i.hasNext()) {
+				JSONObject innerObj = (JSONObject) i.next();
+				CashEntry entry = new CashEntry();
+				entry.setId(Integer.parseInt(innerObj.get("id").toString()));
+				entry.setDescription(innerObj.get("description").toString());
+				entry.setAmount(Float.parseFloat(innerObj.get("amount").toString()));
+				OwnerEntry owner = new OwnerEntry();
+				owner.setId(Integer.parseInt(innerObj.get("ownerid").toString()));
+				owner.setName(innerObj.get("ownername").toString());
+				entry.setOwnerEntry(owner);
+				CategoryEntry category = new CategoryEntry();
+				category.setId(Integer.parseInt(innerObj.get("categoryid").toString()));
+				category.setName(innerObj.get("categoryname").toString());
+				entry.setCategoryEntry(category);
+				entry.setActualdate(new SimpleDateFormat("yyyy-MM-dd").parse(innerObj.get("actualdate").toString()));
+				//System.out.println("id " + innerObj.get("id") + " name " + innerObj.get("name") + " catid " + innerObj.get("categoryid"));
+				entries.add(entry);
+			}
+			//entries = Arrays.asList(gson.fromJson(reader, CashEntry[].class));
+			EntityUtils.consume(entity);
+			content.close();
+			response.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return entries.get(0).getAmount();
+	}
+	
+	public static double getVelocityByYear(int year) {
+
+		CloseableHttpClient client;
+		List<CashEntry> entries = new ArrayList<CashEntry>();
+
+		try {
+			client = HttpClients.custom().setSSLSocketFactory(SSLUtil.getInsecureSSLConnectionSocketFactory()).build();
+			HttpGet httpGet = new HttpGet(serviceUriRoot + "/v1/reports/velocitybyyear/" + year);
+			CloseableHttpResponse response;
+			response = client.execute(httpGet);
+			//System.out.println(response.getStatusLine());
+			HttpEntity entity = response.getEntity();
+			InputStream content = entity.getContent();
+			Reader reader = new InputStreamReader(content);
+			//System.out.println(reader.toString());
+			JSONParser parser = new JSONParser();
+			JSONArray ja = (JSONArray) parser.parse(reader);
+			Iterator i = ja.iterator();
+			while (i.hasNext()) {
+				JSONObject innerObj = (JSONObject) i.next();
+				CashEntry entry = new CashEntry();
+				entry.setId(Integer.parseInt(innerObj.get("id").toString()));
+				entry.setDescription(innerObj.get("description").toString());
+				entry.setAmount(Float.parseFloat(innerObj.get("amount").toString()));
+				OwnerEntry owner = new OwnerEntry();
+				owner.setId(Integer.parseInt(innerObj.get("ownerid").toString()));
+				owner.setName(innerObj.get("ownername").toString());
+				entry.setOwnerEntry(owner);
+				CategoryEntry category = new CategoryEntry();
+				category.setId(Integer.parseInt(innerObj.get("categoryid").toString()));
+				category.setName(innerObj.get("categoryname").toString());
+				entry.setCategoryEntry(category);
+				entry.setActualdate(new SimpleDateFormat("yyyy-MM-dd").parse(innerObj.get("actualdate").toString()));
+				//System.out.println("id " + innerObj.get("id") + " name " + innerObj.get("name") + " catid " + innerObj.get("categoryid"));
+				entries.add(entry);
+			}
+			//entries = Arrays.asList(gson.fromJson(reader, CashEntry[].class));
+			EntityUtils.consume(entity);
+			content.close();
+			response.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return entries.get(0).getAmount();
+	}
+	
+	public static double getVelocityByMonth(int year,int month) {
+
+		CloseableHttpClient client;
+		List<CashEntry> entries = new ArrayList<CashEntry>();
+
+		try {
+			client = HttpClients.custom().setSSLSocketFactory(SSLUtil.getInsecureSSLConnectionSocketFactory()).build();
+			HttpGet httpGet = new HttpGet(serviceUriRoot + "/v1/reports/velocitybymonth/" + year + "/" + month);
+			CloseableHttpResponse response;
+			response = client.execute(httpGet);
+			//System.out.println(response.getStatusLine());
+			HttpEntity entity = response.getEntity();
+			InputStream content = entity.getContent();
+			Reader reader = new InputStreamReader(content);
+			JSONParser parser = new JSONParser();
+			JSONArray ja = (JSONArray) parser.parse(reader);
+			Iterator i = ja.iterator();
+			while (i.hasNext()) {
+				JSONObject innerObj = (JSONObject) i.next();
+				CashEntry entry = new CashEntry();
+				entry.setId(Integer.parseInt(innerObj.get("id").toString()));
+				entry.setDescription(innerObj.get("description").toString());
+				entry.setAmount(Float.parseFloat(innerObj.get("amount").toString()));
+				OwnerEntry owner = new OwnerEntry();
+				owner.setId(Integer.parseInt(innerObj.get("ownerid").toString()));
+				owner.setName(innerObj.get("ownername").toString());
+				entry.setOwnerEntry(owner);
+				CategoryEntry category = new CategoryEntry();
+				category.setId(Integer.parseInt(innerObj.get("categoryid").toString()));
+				category.setName(innerObj.get("categoryname").toString());
+				entry.setCategoryEntry(category);
+				entry.setActualdate(new SimpleDateFormat("yyyy-MM-dd").parse(innerObj.get("actualdate").toString()));
+				//System.out.println("id " + innerObj.get("id") + " name " + innerObj.get("name") + " catid " + innerObj.get("categoryid"));
+				entries.add(entry);
+			}
+			//entries = Arrays.asList(gson.fromJson(reader, CashEntry[].class));
+			EntityUtils.consume(entity);
+			content.close();
+			response.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return entries.get(0).getAmount();
+	}
+	public static double getSumUpTo(String before) {
+
+		CloseableHttpClient client;
+		List<CashEntry> entries = new ArrayList<CashEntry>();
+
+		try {
+			client = HttpClients.custom().setSSLSocketFactory(SSLUtil.getInsecureSSLConnectionSocketFactory()).build();
+			HttpGet httpGet = new HttpGet(serviceUriRoot + "/v1/reports/sumupto/" + before);
+			
+			CloseableHttpResponse response;
+			response = client.execute(httpGet);
+			
+			HttpEntity entity = response.getEntity();
+			InputStream content = entity.getContent();
+			Reader reader = new InputStreamReader(content);
+			JSONParser parser = new JSONParser();
+			JSONArray ja = (JSONArray) parser.parse(reader);
+			Iterator i = ja.iterator();
+			while (i.hasNext()) {
+				JSONObject innerObj = (JSONObject) i.next();
+				CashEntry entry = new CashEntry();
+				entry.setId(Integer.parseInt(innerObj.get("id").toString()));
+				entry.setDescription(innerObj.get("description").toString());
+				entry.setAmount(Float.parseFloat(innerObj.get("amount").toString()));
+				OwnerEntry owner = new OwnerEntry();
+				owner.setId(Integer.parseInt(innerObj.get("ownerid").toString()));
+				owner.setName(innerObj.get("ownername").toString());
+				entry.setOwnerEntry(owner);
+				CategoryEntry category = new CategoryEntry();
+				category.setId(Integer.parseInt(innerObj.get("categoryid").toString()));
+				category.setName(innerObj.get("categoryname").toString());
+				entry.setCategoryEntry(category);
+				entry.setActualdate(new SimpleDateFormat("yyyy-MM-dd").parse(innerObj.get("actualdate").toString()));
+				entries.add(entry);
+			}
+			
+			EntityUtils.consume(entity);
+			content.close();
+			response.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return entries.get(0).getAmount();
+	}
+
+	public static List<CashEntry> getSumByMonthByCategory() {
+
+		CloseableHttpClient client;
+		List<CashEntry> entries = new ArrayList<CashEntry>();
+
+		try {
+			client = HttpClients.custom().setSSLSocketFactory(SSLUtil.getInsecureSSLConnectionSocketFactory()).build();
+			HttpGet httpGet = new HttpGet(serviceUriRoot + "/v1/reports/sumbymonthbycategory");
+			CloseableHttpResponse response;
+			response = client.execute(httpGet);
+			HttpEntity entity = response.getEntity();
+			InputStream content = entity.getContent();
+			Reader reader = new InputStreamReader(content);
+			JSONParser parser = new JSONParser();
+			JSONArray ja = (JSONArray) parser.parse(reader);
+			Iterator i = ja.iterator();
+			while (i.hasNext()) {
+				JSONObject innerObj = (JSONObject) i.next();
+				CashEntry entry = new CashEntry();
+				entry.setId(Integer.parseInt(innerObj.get("id").toString()));
+				entry.setDescription(innerObj.get("description").toString());
+				entry.setAmount(Float.parseFloat(innerObj.get("amount").toString()));
+				OwnerEntry owner = new OwnerEntry();
+				owner.setId(Integer.parseInt(innerObj.get("ownerid").toString()));
+				owner.setName(innerObj.get("ownername").toString());
+				entry.setOwnerEntry(owner);
+				CategoryEntry category = new CategoryEntry();
+				category.setId(Integer.parseInt(innerObj.get("categoryid").toString()));
+				category.setName(innerObj.get("categoryname").toString());
+				entry.setCategoryEntry(category);
+				entry.setActualdate(new SimpleDateFormat("yyyy-MM-dd").parse(innerObj.get("actualdate").toString()));
+				//System.out.println("id " + innerObj.get("id") + " name " + innerObj.get("name") + " catid " + innerObj.get("categoryid"));
+				entries.add(entry);
+			}
+			//entries = Arrays.asList(gson.fromJson(reader, CashEntry[].class));
+			EntityUtils.consume(entity);
+			content.close();
+			response.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return entries;
+	}
+
+	public static List<CashEntry> getSumByMonthByCategory(int year, String sort) {
+
+		CloseableHttpClient client;
+		List<CashEntry> entries = new ArrayList<CashEntry>();
+
+		try {
+			client = HttpClients.custom().setSSLSocketFactory(SSLUtil.getInsecureSSLConnectionSocketFactory()).build();
+			HttpGet httpGet = new HttpGet(serviceUriRoot + "/v1/reports/top10bycategory/" + year + "/" + sort);
+			//Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS")
+			//		.registerTypeAdapter(CashEntry.class, new CashEntryDeserializer()).setPrettyPrinting().create();
+			CloseableHttpResponse response;
+			response = client.execute(httpGet);
+			//System.out.println(response.getStatusLine());
+			HttpEntity entity = response.getEntity();
+			InputStream content = entity.getContent();
+			Reader reader = new InputStreamReader(content);
+			JSONParser parser = new JSONParser();
+			JSONArray ja = (JSONArray) parser.parse(reader);
+			Iterator i = ja.iterator();
+			while (i.hasNext()) {
+				JSONObject innerObj = (JSONObject) i.next();
+				CashEntry entry = new CashEntry();
+				entry.setId(Integer.parseInt(innerObj.get("id").toString()));
+				entry.setDescription(innerObj.get("description").toString());
+				entry.setAmount(Float.parseFloat(innerObj.get("amount").toString()));
+				OwnerEntry owner = new OwnerEntry();
+				owner.setId(Integer.parseInt(innerObj.get("ownerid").toString()));
+				owner.setName(innerObj.get("ownername").toString());
+				entry.setOwnerEntry(owner);
+				CategoryEntry category = new CategoryEntry();
+				category.setId(Integer.parseInt(innerObj.get("categoryid").toString()));
+				category.setName(innerObj.get("categoryname").toString());
+				entry.setCategoryEntry(category);
+				entry.setActualdate(new SimpleDateFormat("yyyy-MM-dd").parse(innerObj.get("actualdate").toString()));
+				//System.out.println("id " + innerObj.get("id") + " name " + innerObj.get("name") + " catid " + innerObj.get("categoryid"));
+				entries.add(entry);
+			}
+			//entries = Arrays.asList(gson.fromJson(reader, CashEntry[].class));
+			EntityUtils.consume(entity);
+			content.close();
+			response.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return entries;
+	}
+
+	// TODO
+
+	public void updateCategoryEntry(CategoryEntry entry) {
+		try {
+			CloseableHttpClient client = HttpClients.custom()
+					.setSSLSocketFactory(SSLUtil.getInsecureSSLConnectionSocketFactory()).build();
+
+			HttpPost httpPost = new HttpPost(serviceUriRoot + "/v1/updatecategoryentry/" + entry.getId());
+			httpPost.setHeader("Accept", "application/json");
+			httpPost.setHeader("Content-type", "application/json");
+
+			JSONObject obj = new JSONObject();
+	        obj.put("name", entry.getName());
+			StringEntity entity = new StringEntity(obj.toString());
+			
+			httpPost.setEntity(entity);
+
+			CloseableHttpResponse response = client.execute(httpPost);
+			response.close();
+			client.close();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+
+	}
+
+	public void updateOwnerEntry(OwnerEntry entry) {
+		try {
+			CloseableHttpClient client = HttpClients.custom()
+					.setSSLSocketFactory(SSLUtil.getInsecureSSLConnectionSocketFactory()).build();
+
+			HttpPost httpPost = new HttpPost(serviceUriRoot + "/v1/updateownerentry/" + entry.getId());
+			httpPost.setHeader("Accept", "application/json");
+			httpPost.setHeader("Content-type", "application/json");
+			JSONObject obj = new JSONObject();
+	        obj.put("name", entry.getName());
+			StringEntity entity = new StringEntity(obj.toString());
+
+			httpPost.setEntity(entity);
+
+			CloseableHttpResponse response = client.execute(httpPost);
+			response.close();
+			client.close();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+
+	}
+
+	public void updateKeywordEntry(KeywordEntry entry) {
+		try {
+			CloseableHttpClient client = HttpClients.custom()
+					.setSSLSocketFactory(SSLUtil.getInsecureSSLConnectionSocketFactory()).build();
+
+			HttpPost httpPost = new HttpPost(serviceUriRoot + "/v1/updatekeywordentry/" + entry.getId());
+			httpPost.setHeader("Accept", "application/json");
+			httpPost.setHeader("Content-type", "application/json");
+
+			JSONObject obj = new JSONObject();
+	        obj.put("name", entry.getName());
+	        obj.put("categoryid", entry.getCategoryId());
+			StringEntity entity = new StringEntity(obj.toString());
+
+			httpPost.setEntity(entity);
+
+			CloseableHttpResponse response = client.execute(httpPost);
+			response.close();
+			client.close();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+
+	}
+
+	public void updateEstimateEntry(CashEntry entry) {
+		try {
+			CloseableHttpClient client = HttpClients.custom()
+					.setSSLSocketFactory(SSLUtil.getInsecureSSLConnectionSocketFactory()).build();
+
+			HttpPost httpPost = new HttpPost(serviceUriRoot + "/v1/updateestimateentry/" + entry.getId());
+			httpPost.setHeader("Accept", "application/json");
+			httpPost.setHeader("Content-type", "application/json");
+
+			JSONObject obj = new JSONObject();
+	        obj.put("amount", entry.getAmount());
+			StringEntity entity = new StringEntity(obj.toString());
+
+			httpPost.setEntity(entity);
+
+			CloseableHttpResponse response = client.execute(httpPost);
+			response.close();
+			client.close();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+
+	public KeywordEntry getKeyword(String keyword) {
+
+		CloseableHttpClient client;
+		List<KeywordEntry> entries = new ArrayList<KeywordEntry>();
+		try {
+			client = HttpClients.custom().setSSLSocketFactory(SSLUtil.getInsecureSSLConnectionSocketFactory()).build();
+			HttpGet httpGet = new HttpGet(serviceUriRoot + "/v1/keywordentry/" + keyword);
+			CloseableHttpResponse response;
+			response = client.execute(httpGet);
+			HttpEntity entity = response.getEntity();
+			InputStream content = entity.getContent();
+			Reader reader = new InputStreamReader(content);
+			JSONParser parser = new JSONParser();
+			JSONArray ja = (JSONArray) parser.parse(reader);
+			Iterator i = ja.iterator();
+			while (i.hasNext()) {
+				JSONObject innerObj = (JSONObject) i.next();
+				KeywordEntry entry = new KeywordEntry();
+				entry.setId(Integer.parseInt(innerObj.get("id").toString()));
+				entry.setName(innerObj.get("name").toString());
+				entries.add(entry);
+			}
+			EntityUtils.consume(entity);
+			content.close();
+			response.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return entries.get(0);
 	}
 
 	// BACKUP AND RESTORE
 
 	public void takeSnapshot(String type) {
 		try {
-			String url = serviceUriRoot + "/takesnapshot/" + type;
-			ClientConfig config = new DefaultClientConfig();
-			Client client = Client.create(config);
-			WebResource webResource = client.resource(url);
-			webResource.type("text/plain").post(String.class);
-		} catch (Exception e) {
-			e.printStackTrace();
+			CloseableHttpClient client = HttpClients.custom()
+					.setSSLSocketFactory(SSLUtil.getInsecureSSLConnectionSocketFactory()).build();
+			HttpPost httpPost = new HttpPost(serviceUriRoot + "/v1/takesnapshot/" + type);
+			httpPost.setHeader("Accept", "application/json");
+			httpPost.setHeader("Content-type", "application/json");
+			StringEntity entity = new StringEntity("[]");
+			httpPost.setEntity(entity);
+			CloseableHttpResponse response = client.execute(httpPost);
+			response.close();
+			client.close();
+		} catch (Exception ex) {
+			ex.printStackTrace();
 		}
 	}
-	
-	public void restoreSnapshot(String snapshot) {
+
+	public void restoreSnapshot(String name) {
 		try {
-			String url = serviceUriRoot + "/restoresnapshot/" + snapshot;
-			ClientConfig config = new DefaultClientConfig();
-			Client client = Client.create(config);
-			WebResource webResource = client.resource(url);
-			webResource.type("text/plain").post(String.class);
-		} catch (Exception e) {
-			e.printStackTrace();
+			CloseableHttpClient client = HttpClients.custom()
+					.setSSLSocketFactory(SSLUtil.getInsecureSSLConnectionSocketFactory()).build();
+			HttpPost httpPost = new HttpPost(serviceUriRoot + "/v1/restoresnapshot/" + name);
+			httpPost.setHeader("Accept", "application/json");
+			httpPost.setHeader("Content-type", "application/json");
+			StringEntity entity = new StringEntity("[]");
+			httpPost.setEntity(entity);
+			CloseableHttpResponse response = client.execute(httpPost);
+			response.close();
+			client.close();
+		} catch (Exception ex) {
+			ex.printStackTrace();
 		}
 	}
-	
+
 	public List<SnapshotEntry> getLastSnapshotDate() {
 		String url = serviceUriRoot + "/lastsnapshotdate";
-		return getSnapshot(url);
+		return null;
 	}
-	
+
 	public List<SnapshotEntry> getSnapshotEntries() {
-		String url = serviceUriRoot + "/snapshotentries";
-		return getSnapshot(url);
-	}
-	
-	public List<SnapshotEntry> getSnapshot(String url) {
-		URL restWebService;
-		URLConnection yc;
-		String data = null;
-		List<SnapshotEntry> entries = null;
+		CloseableHttpClient client;
+		List<SnapshotEntry> entries = new ArrayList<SnapshotEntry>();
 		try {
-			restWebService = new URL(url);
-			yc = restWebService.openConnection();
-			BufferedReader in = new BufferedReader(new InputStreamReader(
-					yc.getInputStream()));
-			String inputLine;
-			while ((inputLine = in.readLine()) != null) {
-				data = inputLine;
+			client = HttpClients.custom().setSSLSocketFactory(SSLUtil.getInsecureSSLConnectionSocketFactory()).build();
+			HttpGet httpGet = new HttpGet(serviceUriRoot + "/v1/snapshotentries");
+			CloseableHttpResponse response;
+			response = client.execute(httpGet);
+			HttpEntity entity = response.getEntity();
+			InputStream content = entity.getContent();
+			Reader reader = new InputStreamReader(content);
+			JSONParser parser = new JSONParser();
+			JSONArray ja = (JSONArray) parser.parse(reader);
+			Iterator i = ja.iterator();
+			while (i.hasNext()) {
+				JSONObject innerObj = (JSONObject) i.next();
+				SnapshotEntry entry = new SnapshotEntry();
+				entry.setId(Integer.parseInt(innerObj.get("id").toString()));
+				entry.setName(innerObj.get("name").toString());
+				entries.add(entry);
 			}
-			in.close();
-			entries = deserializeSnapshotEntries(data);
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
+			EntityUtils.consume(entity);
+			content.close();
+			response.close();
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return entries;
 	}
-	
-	public void deleteSnapshotEntry(String snapshot) {
-		String url = serviceUriRoot + "/deletesnapshotentry/" + snapshot;
-		delete(url);
-	}
-	
-	private static List<SnapshotEntry> deserializeSnapshotEntries(String data) {
-		SnapshotEntries listOfEntries = null;
-		List<SnapshotEntry> entries = null;
+
+	public SnapshotEntry getSnapshot(int id) {
+		CloseableHttpClient client;
+		List<SnapshotEntry> entries = new ArrayList<SnapshotEntry>();
 		try {
-			JAXBContext jc = JAXBContext
-					.newInstance(new Class[] { com.sevtekin.am.common.SnapshotEntries.class });
-			Unmarshaller unmarshaller = jc.createUnmarshaller();
-			listOfEntries = (SnapshotEntries) unmarshaller
-					.unmarshal(new StringReader(data));
-			entries = listOfEntries.getSnapshotEntry();
-		} catch (JAXBException e) {
+			client = HttpClients.custom().setSSLSocketFactory(SSLUtil.getInsecureSSLConnectionSocketFactory()).build();
+			HttpGet httpGet = new HttpGet(serviceUriRoot + "/v1/snapshotentry/" + id);
+			CloseableHttpResponse response;
+			response = client.execute(httpGet);
+			HttpEntity entity = response.getEntity();
+			InputStream content = entity.getContent();
+			Reader reader = new InputStreamReader(content);
+			JSONParser parser = new JSONParser();
+			JSONArray ja = (JSONArray) parser.parse(reader);
+			Iterator i = ja.iterator();
+			while (i.hasNext()) {
+				JSONObject innerObj = (JSONObject) i.next();
+				SnapshotEntry entry = new SnapshotEntry();
+				entry.setId(Integer.parseInt(innerObj.get("id").toString()));
+				entry.setName(innerObj.get("name").toString());
+				entries.add(entry);
+			}
+			EntityUtils.consume(entity);
+			content.close();
+			response.close();
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return entries;
+		return entries.get(0);
+
+	}
+
+	public void deleteSnapshotEntry(String name) {
+		try {
+			CloseableHttpClient client = HttpClients.custom()
+					.setSSLSocketFactory(SSLUtil.getInsecureSSLConnectionSocketFactory()).build();
+			HttpPost httpPost = new HttpPost(serviceUriRoot + "/v1/deletesnapshotentry/" + name);
+			httpPost.setHeader("Accept", "application/json");
+			httpPost.setHeader("Content-type", "application/json");
+			StringEntity entity = new StringEntity("[]");
+			httpPost.setEntity(entity);
+			CloseableHttpResponse response = client.execute(httpPost);
+			response.close();
+			client.close();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+
+	// DONE
+
+	private static class SSLUtil {
+		protected static SSLConnectionSocketFactory getInsecureSSLConnectionSocketFactory()
+				throws KeyManagementException, NoSuchAlgorithmException {
+			final TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
+				public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+					return null;
+				}
+
+				public void checkClientTrusted(final java.security.cert.X509Certificate[] arg0, final String arg1)
+						throws CertificateException {
+					// do nothing and blindly accept the certificate
+				}
+
+				public void checkServerTrusted(final java.security.cert.X509Certificate[] arg0, final String arg1)
+						throws CertificateException {
+					// do nothing and blindly accept the server
+				}
+
+			} };
+
+			final SSLContext sslcontext = SSLContext.getInstance("SSL");
+			sslcontext.init(null, trustAllCerts, new java.security.SecureRandom());
+
+			final SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslcontext,
+					new String[] { "TLSv1" }, null, SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+
+			return sslsf;
+		}
 	}
 }
