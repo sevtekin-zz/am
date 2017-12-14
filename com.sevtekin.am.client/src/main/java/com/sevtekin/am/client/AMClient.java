@@ -696,6 +696,39 @@ public class AMClient {
 		return entries;
 	}
 
+	
+	public static CashEntry getCoinbaseBalance() {
+
+		CloseableHttpClient client;
+		List<CashEntry> entries = new ArrayList<CashEntry>();
+		try {
+			client = HttpClients.custom().setSSLSocketFactory(SSLUtil.getInsecureSSLConnectionSocketFactory()).build();
+			HttpGet httpGet = new HttpGet(serviceUriRoot + "/v1/cb/balance");
+			CloseableHttpResponse response;
+			response = client.execute(httpGet);
+			HttpEntity entity = response.getEntity();
+			InputStream content = entity.getContent();
+			Reader reader = new InputStreamReader(content);
+			JSONParser parser = new JSONParser();
+			JSONArray ja = (JSONArray) parser.parse(reader);
+			Iterator i = ja.iterator();
+			while (i.hasNext()) {
+				JSONObject innerObj = (JSONObject) i.next();
+				CashEntry entry = new CashEntry();
+				entry.setId(0);
+				entry.setAmount(Float.parseFloat(innerObj.get("balance").toString()));
+				System.out.println("Balance " + entry.getAmount());
+				entries.add(entry);
+			}
+			EntityUtils.consume(entity);
+			content.close();
+			response.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return entries.get(0);
+	}
+	
 	public static CashEntry getSumByYear(int year) {
 
 		CloseableHttpClient client;
@@ -928,17 +961,16 @@ public class AMClient {
 		return entries.get(0).getAmount();
 	}
 	
-	public static double getVelocityByMonth(int year,int month) {
+	public static double getRetainedByMonth(int year,int month) {
 
 		CloseableHttpClient client;
 		List<CashEntry> entries = new ArrayList<CashEntry>();
 
 		try {
 			client = HttpClients.custom().setSSLSocketFactory(SSLUtil.getInsecureSSLConnectionSocketFactory()).build();
-			HttpGet httpGet = new HttpGet(serviceUriRoot + "/v1/reports/velocitybymonth/" + year + "/" + month);
+			HttpGet httpGet = new HttpGet(serviceUriRoot + "/v1/reports/retainedbymonth/" + year + "/" + month);
 			CloseableHttpResponse response;
 			response = client.execute(httpGet);
-			//System.out.println(response.getStatusLine());
 			HttpEntity entity = response.getEntity();
 			InputStream content = entity.getContent();
 			Reader reader = new InputStreamReader(content);
@@ -964,6 +996,10 @@ public class AMClient {
 				entries.add(entry);
 			}
 			//entries = Arrays.asList(gson.fromJson(reader, CashEntry[].class));
+			CashEntry entry = new CashEntry();
+			entry.setId(1);
+			entry.setAmount(getCoinbaseBalance().getAmount());
+			entries.add(entry);
 			EntityUtils.consume(entity);
 			content.close();
 			response.close();
@@ -1355,6 +1391,38 @@ public class AMClient {
 		}
 	}
 
+	
+	// AUTH
+	
+	public static String auth(String email,String pass) {
+		CloseableHttpClient client;
+		String result = "";
+		try {
+			client = HttpClients.custom().setSSLSocketFactory(SSLUtil.getInsecureSSLConnectionSocketFactory()).build();
+			HttpPost httpPost = new HttpPost(serviceUriRoot + "/v1/auth/" + email + "/" + pass);
+			CloseableHttpResponse response;
+			response = client.execute(httpPost);
+			HttpEntity entity = response.getEntity();
+			InputStream content = entity.getContent();
+			Reader reader = new InputStreamReader(content);
+			JSONParser parser = new JSONParser();
+			JSONArray ja = (JSONArray) parser.parse(reader);
+			Iterator<?> i = ja.iterator();
+			while (i.hasNext()) {
+				JSONObject innerObj = (JSONObject) i.next();	
+				result= innerObj.get("authuser").toString();	
+			}
+			EntityUtils.consume(entity);
+			content.close();
+			response.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		System.out.println("auth user: " + result);
+		return result;
+	}
+	
+	
 	// DONE
 
 	private static class SSLUtil {
