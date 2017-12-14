@@ -11,6 +11,11 @@
     "body-parser": "*",
     "dateformat": "^3.0.2",
     "express": "^4.13.3",
+    "request": "^2.34.0",
+    "follow-redirects": "*",
+    "unescape": "*",
+    "coinbase": "*",
+    "firebase": "*",
     "mysql": "*"
   }
 }

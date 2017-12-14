@@ -8,9 +8,9 @@ spec:
   ports:
     - port: 3306
       name: amdb
-    - port: 443
-      name: ambackend
     - port: 8443
+      name: ambackend
+    - port: 443
       name: amfrontend
   selector:
     app: am

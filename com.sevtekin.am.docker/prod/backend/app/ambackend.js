@@ -12,7 +12,7 @@ var app = express();
 
 var filters = "";
 
-const port = 443;
+const port = 8443;
 
 
 var dbuser = process.env.dbuser;
@@ -42,12 +42,12 @@ app.use(bodyParser.json())
 app.get("/", function(req, res){
 
 //res.send("<h1>Hello " + dbname + " " + dbpass + " " + dbport +  "<h2>");
-console.log("HEY I AM ALIVE");
+//console.log("HEY I AM ALIVE");
 res.send ("HEY I AM ALIVE");
 });
 app.get("/v1/cashentries", function(req, res){
 
-      var sqlStr = "select cashentry.id,actualdate,amount,ownerid,categoryid,ownerentry.name as ownername, categoryentry.name as categoryname,description from cashentry,ownerentry,categoryentry where (ownerid=amdb.ownerentry.id) and (categoryid=amdb.categoryentry.id)";
+      var sqlStr = "select cashentry.id,actualdate,amount,ownerid,categoryid,ownerentry.name as ownername, categoryentry.name as categoryname,description from cashentry,ownerentry,categoryentry where (ownerid=amdb.ownerentry.id) and (categoryid=amdb.categoryentry.id) ORDER BY actualdate DESC";
       console.log(sqlStr);
       pool.getConnection(function(err, connection) {
   		if (err) {
@@ -65,7 +65,7 @@ app.get("/v1/cashentries", function(req, res){
 
 
 app.get("/v1/reports/sumbyrange/:before/:after", function(req, res){
-      var sqlStr = "SELECT SUM(amount) FROM cashentry WHERE actualdate>='" + req.params.after + "' AND actualdate <= '" + req.params.before + "'";
+      var sqlStr = "SELECT SUM(amount) FROM cashentry WHERE actualdate>='" + req.params.after + "' AND actualdate <= '" + req.params.before + "' ORDER BY actualdate DESC";
       pool.getConnection(function(err, connection) {
     		if (err) {
     	  		console.log(' Error getting mysql_pool connection: ' + err);
@@ -110,7 +110,7 @@ app.get("/v1/reports/sumupto/:before", function(req, res){
 app.get("/v1/cashentries/:filters", function(req, res){
 
 
-      var sqlStr = "select cashentry.id,actualdate,amount,ownerid,categoryid,ownerentry.name as ownername, categoryentry.name as categoryname, description from cashentry,ownerentry,categoryentry where (ownerid=amdb.ownerentry.id) and (categoryid=amdb.categoryentry.id)" + " and " + req.params.filters;
+      var sqlStr = "SELECT cashentry.id,actualdate,amount,ownerid,categoryid,ownerentry.name AS ownername,categoryentry.name AS categoryname,description FROM cashentry,ownerentry,categoryentry WHERE (ownerid=amdb.ownerentry.id) AND (categoryid=amdb.categoryentry.id)" + " AND " + req.params.filters + " ORDER BY actualdate DESC";
       console.log(sqlStr);
       pool.getConnection(function(err, connection) {
     		if (err) {
@@ -167,7 +167,6 @@ app.get("/v1/categoryentry/:id", function(req, res){
 
 app.get("/v1/categoryentries", function(req, res){
 
-      req.setEncoding('utf8');
       var sqlStr = "SELECT * FROM categoryentry ORDER BY name";
       console.log(sqlStr);
       pool.getConnection(function(err, connection) {
@@ -278,7 +277,7 @@ app.post('/v1/addcashentry', function (req, res) {
   var amount = req.body.amount;
   var description = req.body.description;
   var actualdate = req.body.actualdate;
-  var sqlStr = "INSERT INTO cashentry (amount,description,actualdate,ownerid,categoryid) VALUES (" + amount + ",'added manually','"  + actualdate + "'," + ownerid + "," + categoryid + ")";
+  var sqlStr = "INSERT INTO cashentry (amount,description,actualdate,ownerid,categoryid) VALUES (" + amount + ",'" + description + "','"  + actualdate + "'," + ownerid + "," + categoryid + ")";
   console.log(sqlStr);
   pool.getConnection(function(err, connection) {
 		if (err) {
@@ -666,12 +665,7 @@ app.get("/v1/reports/sumbyowner", function(req, res){
 });
 
 app.get("/v1/reports/sumbyyear/:year", function(req, res){
-
-	
-
-        var start = req.params.year + "-01-01";
-        var stop = req.params.year + "-12-31";
-        var sqlStr = "SELECT sum(amount) as amount FROM monthlytotals where actualdate>='" + start + "' AND actualdate<='" + stop + "'";
+        var sqlStr = "SELECT sum(amount) as amount FROM monthlytotals WHERE yr=" + req.params.year;
         console.log (sqlStr);
 
         
@@ -685,7 +679,7 @@ app.get("/v1/reports/sumbyyear/:year", function(req, res){
             var result = [];
             if(!err) {
               for (var i = 0; i < rows.length; i++) {
-                  result.push({id: 1, amount: rows[i].amount, actualdate:start, description: 'description', categoryid:1, categoryname:'name', ownerid:1, ownername:'name'});
+                  result.push({id: 1, amount: rows[i].amount, actualdate: req.params.year + "-01-01" , description: 'description', categoryid:1, categoryname:'name', ownerid:1, ownername:'name'});
               }
               res.json(result);
             }
@@ -843,7 +837,7 @@ app.get("/v1/reports/velocitybyyear/:year", function(req, res){
     
 });
 
-app.get("/v1/reports/velocitybymonth/:year/:month", function(req, res){
+app.get("/v1/reports/retainedbymonth/:year/:month", function(req, res){
 	var sqlStr="SELECT sum(amount) AS amount FROM monthlytotalsbycategory WHERE yr=" + req.params.year +  " AND mnth=" + req.params.month + " AND name != 'Carry Over'";
     console.log (sqlStr);
 	 pool.getConnection(function(err, connection) {
@@ -856,7 +850,10 @@ app.get("/v1/reports/velocitybymonth/:year/:month", function(req, res){
         var result = [];
         if(!err) {
           for (var i = 0; i < rows.length; i++) {
-              result.push({id: 1, amount: rows[i].amount/req.params.month, actualdate:start, description: 'description', categoryid:1, categoryname:'name', ownerid:1, ownername:'name'});
+        	      var tmp = 0.0;
+        	      if (rows[i].amount!=null)
+        	      	tmp = rows[i].amount;
+              result.push({id: 1, amount: tmp, actualdate:start, description: 'description', categoryid:1, categoryname:'name', ownerid:1, ownername:'name'});
           }
           res.json(result);
         }
@@ -933,10 +930,55 @@ app.post('/v1/deletesnapshotentry/:name', function (req, res) {
 		        console.log('snapshot deleted successfully');
 		   });  
 		});
-	  res.send("done");
-	  
-	      
+	  res.send("done"); 
 });
+
+app.get("/v1/cb/balance", function(req, res){
+	var coinbase = require('coinbase');
+	var client   = new coinbase.Client({'apiKey': 'AfKPO3PMoYWxrNU1', 'apiSecret':'DYh7n1a6Q7egtwHHeUOCQTEO77ZVVjSN' });
+	var result = [];
+	var total = 0.00;
+	
+	client.getAccounts({}, function(err, accounts) {
+		accounts.forEach(function(acct) {
+		    console.log(acct.name + ': ' + acct.native_balance.amount);
+		    total += parseFloat(acct.native_balance.amount);
+		  });
+		console.log ("RESULT " + result);
+		result.push({balance: total});
+		res.json(result);
+		});
+});
+
+app.post("/v1/auth/:email/:pass", function(req, res){
+
+    var email =  req.params.email;
+    var pass =  req.params.pass;
+	var firebaseClient = require('firebase');
+	var config = {
+		    apiKey: "AIzaSyAweSkT-Phorxt_10a0FdiZ8rjWAQUFKuE",
+		    authDomain: "assetmanager-171616.firebaseapp.com",
+		    databaseURL: "https://assetmanager-171616.firebaseio.com",
+		    projectId: "assetmanager-171616",
+		    storageBucket: "assetmanager-171616.appspot.com",
+		    messagingSenderId: "232262905979"
+		  };
+	
+	if (!firebaseClient.apps.length) {
+		firebaseClient.initializeApp(config)
+	}
+	firebaseClient.auth().signInWithEmailAndPassword(email, pass)
+	.then(function(authData){
+		res.send([{authuser: email}]);
+	})
+	.catch(function(error){
+		email = "none";
+	    console.log(error);
+	    res.send([{authuser: email}]);
+	})
+	
+});
+
 
 var options = {
 	key: fs.readFileSync("mockserver.key"),
