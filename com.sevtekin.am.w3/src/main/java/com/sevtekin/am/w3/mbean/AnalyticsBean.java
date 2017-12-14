@@ -26,7 +26,7 @@ import com.sevtekin.am.common.OwnerEntry;
 public class AnalyticsBean implements Serializable {
 
 	private static final long serialVersionUID = 1L;
-	AMClient client = new AMClient();
+	//AMClient client = new AMClient();
 	List<CashEntry> result = new ArrayList<CashEntry>();
 	private HorizontalBarChartModel sumByMonthByCategoryChart;
 	List<CashEntry> entries = null;
@@ -88,14 +88,17 @@ public class AnalyticsBean implements Serializable {
 	
 	
 
-	public AnalyticsBean() {
+	@PostConstruct
+	public void initialize() {
+	
+		
 		int cmonth = Integer.parseInt(new SimpleDateFormat("MM").format(new Date()));
 		int cyear = Integer.parseInt(new SimpleDateFormat("yyyy").format(new Date()));
-		List<CategoryEntry> cats = client.getCategoryEntries();
-		List<CashEntry> sums = client.getSumByMonthByCategory();
+		List<CategoryEntry> cats = AMClient.getCategoryEntries();
+		List<CashEntry> sums = AMClient.getSumByMonthByCategory();
 		sumByMonthByCategoryEntries = sums;
-		estimateEntries = client.getEstimateEntries();
-		sumByMonthEntries = client.getSumByMonth();
+		estimateEntries = AMClient.getEstimateEntries();
+		sumByMonthEntries = AMClient.getSumByMonth();
 		//cashEntries = client.getCashEntries();
 		Date earliest = new Date();
 		for (CashEntry e : sums)
@@ -184,11 +187,12 @@ public class AnalyticsBean implements Serializable {
 		
 		System.out.println("3--------------");
 		
-		entries = client.getSumByOwner();
+		entries = AMClient.getSumByOwner();
 		Date today = new Date();
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(today);
 		year = calendar.get(Calendar.YEAR);
+		cb = AMClient.getCoinbaseBalance().getAmount();
 
 		for (CashEntry entry : entries) {
 			String owner = entry.getOwnerEntry().getName();
@@ -208,10 +212,8 @@ public class AnalyticsBean implements Serializable {
 				ccca = entry.getAmount();
 			else if (owner.equalsIgnoreCase("CHASE SAVINGS"))
 				cs = entry.getAmount();
-			else if (owner.equalsIgnoreCase("COINBASE ASSETS"))
-				cb = entry.getAmount();
-
 		}
+		
 		total = wfc + wfsa + wfsb + wfcca + wfccb + cc + ccca + cs + cb;
 		
 		System.out.println("4--------------");
@@ -283,13 +285,13 @@ public class AnalyticsBean implements Serializable {
 		
 		System.out.println("5--------------");
 
-		List<CashEntry> tmp = client.getSumByMonthByCategory(year, "desc");
+		List<CashEntry> tmp = AMClient.getSumByMonthByCategory(year, "desc");
 		top10Gains = new ArrayList<CashEntry>();
 		for (CashEntry e : tmp)
 			if (e.getAmount() > 0)
 				top10Gains.add(e);
 
-		List<CashEntry> tmp2 = client.getSumByMonthByCategory(year, "asc");
+		List<CashEntry> tmp2 = AMClient.getSumByMonthByCategory(year, "asc");
 		top10Losses = new ArrayList<CashEntry>();
 		for (CashEntry e : tmp2)
 			if (e.getAmount() < 0)
@@ -337,14 +339,18 @@ public class AnalyticsBean implements Serializable {
 
 		velocity = new CashEntry();
 		velocity.setDescription("MONTHLY VELOCITY");
-		velocity.setAmount(calculateMonthlyVelocity());
+		int numOfMonths  = Integer.parseInt(new SimpleDateFormat("MM").format(new Date()));
+		//System.out.println("num of months " + numOfMonths);
+		//double amount = client.getSumByYear(year).getAmount();
+		//System.out.println("amount "  + amount);
+		velocity.setAmount(AMClient.getSumByYear(year).getAmount()/numOfMonths);
 		velocities.add(velocity);
 		
 		System.out.println("9--------------");
 
 		velocity = new CashEntry();
 		velocity.setDescription("THIS YEAR RETAINED ");
-		velocity.setAmount(calculateYearlyRetained(year));
+		velocity.setAmount(calculateYearlyRetained(year) + cb);
 		velocities.add(velocity);
 		
 		System.out.println("10-------------");
@@ -358,14 +364,14 @@ public class AnalyticsBean implements Serializable {
 
 		velocity = new CashEntry();
 		velocity.setDescription("ANNUAL RET'D AVERAGE");
-		velocity.setAmount(calculateAnnuallyRetainedAverage());
+		velocity.setAmount(calculateAnnuallyRetainedAverage()+ cb/(year-2014));
 		velocities.add(velocity);
 		
 		System.out.println("12-------------");
 
 		velocity = new CashEntry();
 		velocity.setDescription("THIS YEAR VELOCITY");
-		double thisYear = calculateYearlyVelocity(year);
+		double thisYear = calculateYearlyVelocity(year) + AMClient.getCoinbaseBalance().getAmount();
 		velocity.setAmount(thisYear);
 		velocities.add(velocity);
 		
@@ -381,7 +387,7 @@ public class AnalyticsBean implements Serializable {
 
 		velocity = new CashEntry();
 		velocity.setDescription("ANNUAL VELOCITY");
-		velocity.setAmount(calculateYearlyVelocity());
+		velocity.setAmount(calculateYearlyVelocity() + cb/(year-2014));
 		velocities.add(velocity);
 		
 		System.out.println("15-------------");
@@ -419,10 +425,8 @@ public class AnalyticsBean implements Serializable {
 	
 	}
 
-	@PostConstruct
-	public void initialize() {
-		
-	}
+	
+	
 
 	public HorizontalBarChartModel getSumByMonthByCategoryChart() {
 		return sumByMonthByCategoryChart;
@@ -846,7 +850,7 @@ public class AnalyticsBean implements Serializable {
 		trendsChart.getAxes().put(AxisType.X, new CategoryAxis(""));
 		Calendar calendar = Calendar.getInstance();
 		int year = calendar.get(Calendar.YEAR);
-		double projection = calculateMonthlyVelocity();
+		double projection = calculateProjectionVelocity();
 		ChartSeries trend = new ChartSeries();
 		trend.setLabel("Last Year");
 		ChartSeries project = new ChartSeries();
@@ -950,27 +954,28 @@ public class AnalyticsBean implements Serializable {
 		trendsChart.addSeries(estimate);
 	}
 
-	private double calculateMonthlyVelocity() {
-		LineChartSeries project = new LineChartSeries();
-		project.setLabel("Previous Year");
-		double projection = 0.0;
-		int lowestMonth = 12;
-		int highestMonth = 0;
-		for (CashEntry e : sumByMonthByCategoryEntries) {
-			if (!e.getCategoryEntry().getName().contains("Carry Over")) {
-				int month = Integer.parseInt(new SimpleDateFormat("MM").format(e.getActualdate()));
-				int year = Integer.parseInt(new SimpleDateFormat("yyyy").format(e.getActualdate()));
-				if (Integer.parseInt(new SimpleDateFormat("yyyy").format(new Date())) == year) {
-					projection += e.getAmount();
-					if (month < lowestMonth)
-						lowestMonth = month;
-					if (month > highestMonth)
-						highestMonth = month;
-				}
-			}
-		}
-		double result = projection / (highestMonth - lowestMonth + 1);
-		monthlyVelocityGoalDiff = result - monthlyVelocityGoal;
+	private double calculateProjectionVelocity() {
+//		LineChartSeries project = new LineChartSeries();
+//		project.setLabel("Previous Year");
+//		double projection = 0.0;
+//		int lowestMonth = 12;
+//		int highestMonth = 0;
+//		for (CashEntry e : sumByMonthByCategoryEntries) {
+//			if (!e.getCategoryEntry().getName().contains("Carry Over")) {
+//				int month = Integer.parseInt(new SimpleDateFormat("MM").format(e.getActualdate()));
+//				int year = Integer.parseInt(new SimpleDateFormat("yyyy").format(e.getActualdate()));
+//				if (Integer.parseInt(new SimpleDateFormat("yyyy").format(new Date())) == year) {
+//					projection += e.getAmount();
+//					if (month < lowestMonth)
+//						lowestMonth = month;
+//					if (month > highestMonth)
+//						highestMonth = month;
+//				}
+//			}
+//		}
+//		double result = projection / (highestMonth - lowestMonth + 1);
+		double result = this.monthlyVelocity;
+		monthlyVelocityGoalDiff = this.monthlyVelocity - monthlyVelocityGoal;
 		if (monthlyVelocityGoalDiff >= 0)
 			velocityIndicator = "up";
 		else
@@ -1075,11 +1080,11 @@ public class AnalyticsBean implements Serializable {
 //	}
 
 	private double calculateMonthlyRetained(int year,int month) {
-		return client.getVelocityByMonth(year,month);
+		return AMClient.getRetainedByMonth(year,month);
 	}
 
 	private double calculateYearlyVelocity(int year) {
-		return client.getVelocityByYear(year);
+		return AMClient.getVelocityByYear(year);
 	}
 
 	private double calculateYearlyVelocity() {
@@ -1093,6 +1098,7 @@ public class AnalyticsBean implements Serializable {
 			}
 		return velocity / years.size();
 	}
+	
 
 	private double calculateAnnuallyRetainedAverage() {
 		double totalRetained = 0.0;
@@ -1107,15 +1113,15 @@ public class AnalyticsBean implements Serializable {
 	}
 
 	private double calculateYearlyRetained(int year) {
-		return client.getRetainedByYear(year);
+		return AMClient.getRetainedByYear(year);
 	}
 
 	private double calculateYearlySpent(int year) {
-		return client.getSpentByYear(year);
+		return AMClient.getSpentByYear(year);
 	}
 
 	private double calculateYearlyGained(int year) {
-		return client.getGainedByYear(year);
+		return AMClient.getGainedByYear(year);
 	}
 
 	private void calculateEstimateGoal() {

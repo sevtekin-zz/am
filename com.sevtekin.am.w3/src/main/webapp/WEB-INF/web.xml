@@ -70,6 +70,7 @@
 	<session-config>
 		<session-timeout>3</session-timeout>
 	</session-config>
+	
 	<servlet>
 		<servlet-name>Faces Servlet</servlet-name>
 		<servlet-class>javax.faces.webapp.FacesServlet</servlet-class>

@@ -20,24 +20,25 @@
 	<br>
 	<div
 		style="border: 3px solid darkgray; width: 473px; height: 208px; margin-left: auto; margin-right: auto; background-color: #eeeeee; background-repeat: no-repeat; background-size: 100%;">
-		<form method="POST" action="j_security_check">
+		<form method="POST" action="site.jsf">
 			<br> <br> <br>
 			<center>
 				<table>
 					<tr>
-
-						<td><input type="text" name="j_username" value="" /></td>
+						<td><input type="text" name="j_username" value="" style="font-size:25px;"/></td>
 					</tr>
 					<tr>
-						<td><input type="password" name="j_password" value="" /></td>
+						<td><input type="password" name="j_password" value="" style="font-size:25px;"/></td>
 					</tr>
 					<tr>
-						<td align="right"><input type="submit" value="Login" /></td>
+						<td align="right"><input type="submit" value="Login" width="200" height="200" style="font-family: verdana;font-size: 25px;" /></td>
+					</tr>
+					<tr>
+						<td align="right"><div align="right"><font size=2 color=grey> last build on: @buildTime &nbsp;</font></div></td>
 					</tr>
 				</table>
 			</center>
-			<br><br><br>
-			<div align="right"><font size=2 color=grey> last build on: @buildTime &nbsp;</font></div>
+			
 		</form>
 	</div>
 </body>

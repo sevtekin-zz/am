@@ -246,6 +246,7 @@ public class ImportBean implements Serializable {
 		System.out.println("IMPORT 1 --------");
 		importEntries = new ArrayList<CashEntry>();
 		client = new AMClient();
+		client.takeSnapshot("sn");
 		try {
 			String fileName = event.getFile().getFileName();
 			String ownerName = "";
@@ -332,49 +333,68 @@ public class ImportBean implements Serializable {
 
 				System.out.println("IMPORT 6 --------");
 				DateFormat sdf = new SimpleDateFormat("yyyyMMdd");
-				Calendar cal = Calendar.getInstance();
-				String today = sdf.format(cal.getTime());
-				cal.add(Calendar.MONTH, -4);
-				String threeMonthsAgo = sdf.format(cal.getTime());
-				String filter = " actualdate>='" + threeMonthsAgo + "' and actualdate<='" + today + "'";
-				if (filter != "") {
-					filter = filter.trim();
-					filter = URLEncoder.encode(filter, "UTF-8");
-					filter = filter.replace("+", "%20");
-				}
-				allEntries = client.getCashEntries(filter);
-				System.out.println("FILTER " + filter);
-				System.out.println("IMPORT 7 --------");
-				System.out.println("COUNT " + allEntries.size());
-				alreadyImported = new ArrayList<CashEntry>();
-				for (CashEntry e : allEntries)
-					for (CashEntry c : importEntries) {
-						int d1 = Integer.parseInt(sdf.format(e.getActualdate()));
-						int d2 = Integer.parseInt(sdf.format(c.getActualdate()));
-
-						// System.out.println("DATES " + d1 + " | " + d2);
-						double a1 = Double.parseDouble(String.format("%.2f", e.getAmount()));
-						double a2 = c.getAmount();
-						 System.out.println("AMOUNTS " + a1 + " | " + a2);
-						int o1 = e.getOwnerEntry().getId();
-						int o2 = c.getOwnerEntry().getId();
-						// System.out.println("OWNERS " + o1 + " | " + o2);
-						String ds1 = e.getDescription();
-						String ds2 = c.getDescription();
-						// System.out.println("DESCRIPTIONS " + ds1 + " | " + ds2);
-						//System.out.println(d1 + " | " + a1 + " | " + o1 + " | " + ds1 + " <> " + d2 + " | " + a2 + " | "
-						//		+ o2 + " | " + ds2);
-						if ((d1 == d2) && (a1 == a2) && (o1 == o2) && (ds1.equalsIgnoreCase(ds2))) {
-							alreadyImported.add(c);
-							//System.out.println("MATCH");
-						} else {
-							//System.out.println("UNMATCH");
-						}
-						if ((c.getDescription().contains("Pending")) || (c.getDescription().contains("pending"))
-								|| (c.getDescription().contains("PENDING")))
-							alreadyImported.add(c);
-
+//				Calendar cal = Calendar.getInstance();
+//				String today = sdf.format(cal.getTime());
+//				cal.add(Calendar.MONTH, -4);
+//				String threeMonthsAgo = sdf.format(cal.getTime());
+//				String filter = " actualdate>='" + threeMonthsAgo + "' and actualdate<='" + today + "'";
+//				if (filter != "") {
+//					filter = filter.trim();
+//					filter = URLEncoder.encode(filter, "UTF-8");
+//					filter = filter.replace("+", "%20");
+//				}
+				String filter = "";
+				
+				for (CashEntry e : importEntries) {
+					filter = " actualdate>='" +  Integer.parseInt(sdf.format(e.getActualdate())) + "' and amount=" + e.getAmount() + " and description='" + e.getDescription() + "' and ownerid= " + e.getOwnerEntry().getId();
+					System.out.println("Filter :" + filter); 
+					if (filter != "") {
+						filter = filter.trim();
+						filter = URLEncoder.encode(filter, "UTF-8");
+						filter = filter.replace("+", "%20");
 					}
+					if (!client.getCashEntries(filter).isEmpty()) 
+						alreadyImported.add(e);
+				}
+				
+//				allEntries = client.getCashEntries(filter);
+//				System.out.println("FILTER " + filter);
+//				System.out.println("IMPORT 7 --------");
+//				System.out.println("COUNT " + allEntries.size());
+//				alreadyImported = new ArrayList<CashEntry>();
+//
+//				for (CashEntry e : allEntries)
+//					for (CashEntry c : importEntries) {
+//						int d1 = Integer.parseInt(sdf.format(e.getActualdate()));
+//						int d2 = Integer.parseInt(sdf.format(c.getActualdate()));
+//
+//						System.out.println(" ///////////////////// ");
+//						System.out.println("DATES " + d1 + " | " + d2);
+//						double a1 = Double.parseDouble(String.format("%.2f", e.getAmount()));
+//						double a2 = c.getAmount();
+//						System.out.println("AMOUNTS " + a1 + " | " + a2);
+//						int o1 = e.getOwnerEntry().getId();
+//						int o2 = c.getOwnerEntry().getId();
+//						System.out.println("OWNERS " + o1 + " | " + o2);
+//						String ds1 = e.getDescription();
+//						String ds2 = c.getDescription();
+//						System.out.println("DESCRIPTIONS " + ds1 + " | " + ds2);
+//
+//						// System.out.println(d1 + " | " + a1 + " | " + o1 + " | " + ds1 + " <> " + d2 +
+//						// " | " + a2 + " | "
+//						// + o2 + " | " + ds2);
+//						if ((d1 == d2) && (a1 == a2) && (o1 == o2) && (ds1.equalsIgnoreCase(ds2))) {
+//							alreadyImported.add(c);
+//							System.out.println("MATCH");
+//						} else {
+//							System.out.println("UNMATCH");
+//						}
+//
+//						if ((c.getDescription().contains("Pending")) || (c.getDescription().contains("pending"))
+//								|| (c.getDescription().contains("PENDING")))
+//							alreadyImported.add(c);
+//
+//					}
 				for (CashEntry a : alreadyImported) {
 					importEntries.remove(a);
 					System.out.println("ALREADY IMPORTED " + a.getAmount() + " | " + a.getActualdate() + " | "

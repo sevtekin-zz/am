@@ -38,6 +38,80 @@
 				<p:menuitem value="Snapshots" icon="ui-icon-arrowthickstop-1-s" url="./snapshots.jsf"
 					style="background-size: 100%;background-color:#eeeeee;" />
 			</p:submenu>
+						<f:facet name="options">
+				<h:outputText value="HRS.CRE  " />
+				<h:graphicImage
+					value="/resources/images/#{analyticsBean.horseCareIndicator}.png"
+					width="20" height="17" />
+				<h:outputText value="#{analyticsBean.horseCareGoalDiff}">
+					<f:convertNumber currencySymbol="$" type="currency"
+						maxFractionDigits="2" />
+				</h:outputText>
+				<h:outputText value="   |   " />
+				<h:outputText value="CAR.MNT  " />
+				<h:graphicImage
+					value="/resources/images/#{analyticsBean.carMaintenanceIndicator}.png"
+					width="20" height="15" />
+				<h:outputText value="#{analyticsBean.carMaintenanceGoalDiff}">
+					<f:convertNumber currencySymbol="$" type="currency"
+						maxFractionDigits="2" />
+				</h:outputText>
+				<h:outputText value="   |   " />
+				<h:outputText value="VACA  " />
+				<h:graphicImage
+					value="/resources/images/#{analyticsBean.vacationIndicator}.png"
+					width="20" height="15" />
+				<h:outputText value="#{analyticsBean.vacationGoalDiff}">
+					<f:convertNumber currencySymbol="$" type="currency"
+						maxFractionDigits="2" />
+				</h:outputText>
+				<h:outputText value="   |   " />
+				<h:outputText value="SNCKS  " />
+				<h:graphicImage
+					value="/resources/images/#{analyticsBean.snacksIndicator}.png"
+					width="20" height="15" />
+				<h:outputText value="#{analyticsBean.snacksGoalDiff}">
+					<f:convertNumber currencySymbol="$" type="currency"
+						maxFractionDigits="2" />
+				</h:outputText>
+				<h:outputText value="   |   " />
+				<h:outputText value="FOOD  " />
+				<h:graphicImage
+					value="/resources/images/#{analyticsBean.foodIndicator}.png"
+					width="20" height="15" />
+				<h:outputText value="#{analyticsBean.foodGoalDiff}">
+					<f:convertNumber currencySymbol="$" type="currency"
+						maxFractionDigits="2" />
+				</h:outputText>
+				<h:outputText value="   |   " />
+				<h:outputText value="ENMNT  " />
+				<h:graphicImage
+					value="/resources/images/#{analyticsBean.entertainmentIndicator}.png"
+					width="20" height="15" />
+				<h:outputText value="#{analyticsBean.entertainmentGoalDiff}">
+					<f:convertNumber currencySymbol="$" type="currency"
+						maxFractionDigits="2" />
+				</h:outputText>
+				<h:outputText value="   |   " />
+				<h:outputText value="MNT.VEL  " />
+				<h:graphicImage
+					value="/resources/images/#{analyticsBean.velocityIndicator}.png"
+					width="20" height="15" />
+				<h:outputText value="#{analyticsBean.monthlyVelocityGoalDiff}">
+					<f:convertNumber currencySymbol="$" type="currency"
+						maxFractionDigits="2" />
+				</h:outputText>
+				<h:outputText value="   |   " />
+				<h:outputText value="EST.ACC  " />
+				<h:graphicImage
+					value="/resources/images/#{analyticsBean.estimateIndicator}.png"
+					width="20" height="15" />
+				<h:outputText value="#{analyticsBean.estimateGoalDiff}">
+					<f:convertNumber currencySymbol="$" type="currency"
+						maxFractionDigits="2" />
+				</h:outputText>
+				<p:spacer width="20" height="20" />
+			</f:facet>
 			<f:facet name="options">
 				<p:commandButton value="#{siteBean.user}" icon="ui-icon-power"
 						action="#{siteBean.logout}" />
