@@ -13,6 +13,5 @@
 		<env-var name="DBPASSWORD" value="amdb" />
 		<env-var name="DBURL" value="jdbc:mysql://35.188.74.130:3306/amdb" />
 		<env-var name="DBDUMPLOCATION" value="~/." />
-		<env-var name="DBUSER" value="amdbuser" />
 	</env-variables>
 </appengine-web-app>
