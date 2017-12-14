@@ -1,0 +1,19 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+
+<h:head>
+	<title>Site</title>
+</h:head>
+
+<h:body>
+	<h:form id="form" prependId="false">
+		<f:event listener="#{siteBean.initialize}" type="preRenderView" />
+		<p:panel id="panel1">
+			<h:outputText value="#{siteBean.user}">
+			</h:outputText>
+		</p:panel>
+	</h:form>
+</h:body>
+</html>
