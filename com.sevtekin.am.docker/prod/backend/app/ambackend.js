@@ -679,7 +679,10 @@ app.get("/v1/reports/sumbyyear/:year", function(req, res){
             var result = [];
             if(!err) {
               for (var i = 0; i < rows.length; i++) {
-                  result.push({id: 1, amount: rows[i].amount, actualdate: req.params.year + "-01-01" , description: 'description', categoryid:1, categoryname:'name', ownerid:1, ownername:'name'});
+            	  var tmp = 0.0;
+        	      if (rows[i].amount!=null)
+        	      	tmp = rows[i].amount;
+                  result.push({id: 1, amount: tmp, actualdate: req.params.year + "-01-01" , description: 'description', categoryid:1, categoryname:'name', ownerid:1, ownername:'name'});
               }
               res.json(result);
             }
@@ -733,7 +736,10 @@ app.get("/v1/reports/top10bycategory/:year/:sort", function(req, res){
             if(!err) {
                for (var i = 0; i < rows.length; i++) {
                   var lastDayOfTheMonth = new Date(year, 1, 0);
-                  result.push({id: 1, amount: rows[i].amount, actualdate:lastDayOfTheMonth, description: 'description', categoryid:rows[i].categoryid, categoryname:rows[i].name, ownerid:1, ownername:'name'});
+                  var tmp = 0.0;
+        	      if (rows[i].amount!=null)
+        	      	tmp = rows[i].amount;
+                  result.push({id: 1, amount: tmp, actualdate:lastDayOfTheMonth, description: 'description', categoryid:rows[i].categoryid, categoryname:rows[i].name, ownerid:1, ownername:'name'});
                }
               res.json(result);
             }
@@ -758,7 +764,10 @@ app.get("/v1/reports/retainedbyyear/:year", function(req, res){
         var result = [];
         if(!err) {
           for (var i = 0; i < rows.length; i++) {
-              result.push({id: 1, amount: rows[i].amount, actualdate:start, description: 'description', categoryid:1, categoryname:'name', ownerid:1, ownername:'name'});
+        	  var tmp = 0.0;
+    	      if (rows[i].amount!=null)
+    	      	tmp = rows[i].amount;
+              result.push({id: 1, amount: tmp, actualdate:start, description: 'description', categoryid:1, categoryname:'name', ownerid:1, ownername:'name'});
           }
           res.json(result);
         }
@@ -781,7 +790,10 @@ app.get("/v1/reports/gainedbyyear/:year", function(req, res){
         var result = [];
         if(!err) {
           for (var i = 0; i < rows.length; i++) {
-              result.push({id: 1, amount: rows[i].amount, actualdate:start, description: 'description', categoryid:1, categoryname:'name', ownerid:1, ownername:'name'});
+        	  var tmp = 0.0;
+    	      if (rows[i].amount!=null)
+    	      	tmp = rows[i].amount;
+              result.push({id: 1, amount: tmp, actualdate:start, description: 'description', categoryid:1, categoryname:'name', ownerid:1, ownername:'name'});
           }
           res.json(result);
         }
@@ -804,7 +816,10 @@ app.get("/v1/reports/spentbyyear/:year", function(req, res){
         var result = [];
         if(!err) {
           for (var i = 0; i < rows.length; i++) {
-              result.push({id: 1, amount: rows[i].amount, actualdate:start, description: 'description', categoryid:1, categoryname:'name', ownerid:1, ownername:'name'});
+        	  var tmp = 0.0;
+    	      if (rows[i].amount!=null)
+    	      	tmp = rows[i].amount;
+    	      result.push({id: 1, amount: tmp, actualdate:start, description: 'description', categoryid:1, categoryname:'name', ownerid:1, ownername:'name'});
           }
           res.json(result);
         }
@@ -827,7 +842,10 @@ app.get("/v1/reports/velocitybyyear/:year", function(req, res){
         var result = [];
         if(!err) {
           for (var i = 0; i < rows.length; i++) {
-              result.push({id: 1, amount: rows[i].amount, actualdate:start, description: 'description', categoryid:1, categoryname:'name', ownerid:1, ownername:'name'});
+        	      var tmp = 0.0;
+    	          if (rows[i].amount!=null)
+    	      	    tmp = rows[i].amount;
+              result.push({id: 1, amount: tmp, actualdate:start, description: 'description', categoryid:1, categoryname:'name', ownerid:1, ownername:'name'});
           }
           res.json(result);
         }

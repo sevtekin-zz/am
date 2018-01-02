@@ -57,7 +57,7 @@ spec:
               value: 'amdb'
           securityContext:
             privileged: true
-        - image: us.gcr.io/assetmanager-171616/w3
+        - image: us.gcr.io/assetmanager-171616/frontend:latest
           name: amfrontend
           imagePullPolicy: Always
           env:
