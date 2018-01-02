@@ -105,7 +105,7 @@ public class AMClient {
 			client = HttpClients.custom().setSSLSocketFactory(SSLUtil.getInsecureSSLConnectionSocketFactory()).build();
 			// if (filters.contains("description%20like%20%27%25%25%27%20"))
 			// filters = filters.substring(36, filters.length());
-			System.out.println(filters);
+			//System.out.println(filters);
 
 			HttpGet httpGet = new HttpGet(serviceUriRoot + "/v1/cashentries/" + filters);
 			//Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS")
@@ -136,7 +136,7 @@ public class AMClient {
 				entry.setActualdate(new SimpleDateFormat("yyyy-MM-dd").parse(innerObj.get("actualdate").toString()));
 				//System.out.println("id " + innerObj.get("id") + " name " + innerObj.get("name") + " catid " + innerObj.get("categoryid"));
 				entries.add(entry);
-				System.out.println(entry.getDescription());
+				//System.out.println(entry.getDescription());
 			}
 			//entries = Arrays.asList(gson.fromJson(reader, CashEntry[].class));
 			
